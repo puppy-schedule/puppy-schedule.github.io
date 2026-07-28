@@ -1,1 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Puppy Schedule 🩷</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+
+</head>
+
+<body>
+
+<!-- Floating Decorations -->
+<div id="backgroundDecor"></div>
+
+<!-- ========================================= -->
+<!-- SPLASH SCREEN -->
+<!-- ========================================= -->
+
+<section id="splash" class="screen active">
+
+    <div class="logo">
+
+        🐾
+
+    </div>
+
+    <h1>Puppy Schedule</h1>
+
+    <p>Made with ♡</p>
+
+    <p class="smallText">for my favorite puppy</p>
+
+</section>
+
+
+<!-- ========================================= -->
+<!-- LOGIN -->
+<!-- ========================================= -->
+
+<section id="login" class="screen">
+
+    <div class="card">
+
+        <h2>Welcome Puppy 🩷</h2>
+
+        <input
+            id="username"
+            type="text"
+            placeholder="Username"
+        >
+
+        <input
+            id="password"
+            type="password"
+            placeholder="Password"
+        >
+
+        <button
+            class="cuteButton"
+            id="loginButton"
+        >
+            ♡ Login ♡
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================= -->
+<!-- DASHBOARD -->
+<!-- ========================================= -->
+
+<section id="dashboard" class="screen">
+
+    <div class="phoneCard">
+
+        <h1>Hello Puppy! 🐶</h1>
+
+        <div class="pointsCard">
+
+            <span class="pointsTitle">
+
+                Good Girl Points
+
+            </span>
+
+            <h2 id="pointDisplay">
+
+                0
+
+            </h2>
+
+        </div>
+
+        <div class="menuButtons">
+
+            <button class="menuButton" data-target="rewards">
+
+                🦴
+                <span>Rewards</span>
+
+            </button>
+
+            <button class="menuButton" data-target="calendar">
+
+                📅
+                <span>Calendar</span>
+
+            </button>
+
+            <button class="menuButton" data-target="activity">
+
+                🐾
+                <span>Activity</span>
+
+            </button>
+
+        </div>
+
+        <button id="headPatButton">
+
+            ♡ Head Pats ♡
+
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================= -->
+<!-- REWARDS -->
+<!-- ========================================= -->
+
+<section id="rewards" class="screen">
+
+    <div class="phoneCard">
+
+        <h2>🎁 Rewards</h2>
+
+        <div class="rewardCard">
+
+            <h3>🐾 Pets</h3>
+
+            <p>1 Point</p>
+
+            <button class="cuteButton">
+
+                Redeem
+
+            </button>
+
+        </div>
+
+        <div class="rewardCard">
+
+            <h3>💆 Back Massage</h3>
+
+            <p>10 Points</p>
+
+            <button class="cuteButton">
+
+                Redeem
+
+            </button>
+
+        </div>
+
+        <div class="rewardCard">
+
+            <h3>🍿 Movie Night</h3>
+
+            <p>15 Points</p>
+
+            <button class="cuteButton">
+
+                Redeem
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================= -->
+<!-- CALENDAR -->
+<!-- ========================================= -->
+
+<section id="calendar" class="screen">
+
+    <div class="phoneCard">
+
+        <h2>📅 Calendar</h2>
+
+        <div id="calendarGrid">
+
+            <!-- JS fills this -->
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================= -->
+<!-- ACTIVITY -->
+<!-- ========================================= -->
+
+<section id="activity" class="screen">
+
+    <div class="phoneCard">
+
+        <h2>🐾 Activity</h2>
+
+        <div class="activityCard">
+
+            +1 Good Girl
+
+        </div>
+
+        <div class="activityCard">
+
+            +1 Good Girl
+
+        </div>
+
+        <div class="activityCard">
+
+            Rough Day
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================= -->
+<!-- PAW WIPE -->
+<!-- ========================================= -->
+
+<div id="pawTransition">
+
+    <span>🐾</span>
+    <span>🐾</span>
+    <span>🐾</span>
+    <span>🐾</span>
+    <span>🐾</span>
+
+</div>
+
+
+
+<!-- ========================================= -->
+<!-- HEART BURST -->
+<!-- ========================================= -->
+
+<div id="heartContainer"></div>
+
+
+
+<!-- ========================================= -->
+<!-- AUDIO -->
+<!-- ========================================= -->
+
+<audio id="buttonSound" preload="auto">
+    <source src="assets/sounds/pop.mp3">
+</audio>
+
+<audio id="dingSound" preload="auto">
+    <source src="assets/sounds/ding.mp3">
+</audio>
+
+<audio id="stampSound" preload="auto">
+    <source src="assets/sounds/stamp.mp3">
+</audio>
+
+
+
+<!-- ========================================= -->
+<!-- JS -->
+<!-- ========================================= -->
+
+<script src="js/navigation.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+
+</html>
