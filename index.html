@@ -1,313 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width,
+                   initial-scale=1.0,
+                   maximum-scale=1.0,
+                   user-scalable=no">
 
-    <title>Puppy Schedule 🩷</title>
+    <title>Puppy Rewards</title>
 
-    <!-- Fonts -->
+    <link rel="stylesheet" href="css/style.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/animations.css">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
 
 </head>
 
 <body>
 
-<!-- Floating Decorations -->
-<div id="backgroundDecor"></div>
+<div id="app">
 
-<!-- ========================================= -->
-<!-- SPLASH SCREEN -->
-<!-- ========================================= -->
+    <!-- Background Decorations -->
 
-<section id="splash" class="screen active">
+    <div id="background">
 
-    <div class="logo">
-
-        🐾
+        <div class="bubble bubble1"></div>
+        <div class="bubble bubble2"></div>
+        <div class="bubble bubble3"></div>
 
     </div>
 
-    <h1>Puppy Schedule</h1>
+    <!-- Login Screen -->
 
-    <p>Made with ♡</p>
+    <section id="login-screen" class="screen active">
 
-    <p class="smallText">for my favorite puppy</p>
+        <div class="logo">
 
-</section>
+            🩷
 
+            <h1>Puppy Rewards</h1>
 
-<!-- ========================================= -->
-<!-- LOGIN -->
-<!-- ========================================= -->
+            <p>Good girls deserve rewards.</p>
 
-<section id="login" class="screen">
+        </div>
 
-    <div class="card">
+        <div class="login-card">
 
-        <h2>Welcome Puppy 🩷</h2>
+            <input
+                id="username"
+                type="text"
+                placeholder="Username">
 
-        <input
-            id="username"
-            type="text"
-            placeholder="Username"
-        >
+            <input
+                id="password"
+                type="password"
+                placeholder="Password">
 
-        <input
-            id="password"
-            type="password"
-            placeholder="Password"
-        >
+            <button id="loginBtn">
+                Login
+            </button>
 
-        <button
-            class="cuteButton"
-            id="loginButton"
-        >
-            ♡ Login ♡
+            <button id="createBtn" class="secondary">
+                Create Account
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- Role Selection -->
+
+    <section id="role-screen" class="screen hidden">
+
+        <h2>Who are you?</h2>
+
+        <button class="role-button" id="ownerButton">
+
+            👑
+
+            <span>Owner</span>
+
         </button>
 
-    </div>
+        <button class="role-button" id="puppyButton">
 
-</section>
+            🐾
 
+            <span>Puppy</span>
 
+        </button>
 
-<!-- ========================================= -->
-<!-- DASHBOARD -->
-<!-- ========================================= -->
+    </section>
 
-<section id="dashboard" class="screen">
+    <!-- Invite Screen -->
 
-    <div class="phoneCard">
+    <section id="invite-screen" class="screen hidden">
 
-        <h1>Hello Puppy! 🐶</h1>
+        <h2>Link Your Owner</h2>
 
-        <div class="pointsCard">
+        <div class="invite-card">
 
-            <span class="pointsTitle">
+            <div id="inviteCode">
 
-                Good Girl Points
+                XXXX-XXXX
 
-            </span>
+            </div>
 
-            <h2 id="pointDisplay">
+            <button id="generateCode">
 
-                0
+                Generate Invite Code
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- Owner Link Screen -->
+
+    <section id="link-screen" class="screen hidden">
+
+        <h2>Link Your Puppy</h2>
+
+        <input
+            id="inviteInput"
+            placeholder="Invite Code">
+
+        <button id="linkBtn">
+
+            Link Puppy
+
+        </button>
+
+    </section>
+
+    <!-- Puppy Dashboard -->
+
+    <section id="puppy-dashboard" class="screen hidden">
+
+        <header>
+
+            <h2>
+
+                🩷 Good Girl Wallet
 
             </h2>
 
+        </header>
+
+        <div class="points-card">
+
+            <span class="points-label">
+
+                Current Points
+
+            </span>
+
+            <span id="pointCount">
+
+                0
+
+            </span>
+
         </div>
 
-        <div class="menuButtons">
+        <nav class="bottom-nav">
 
-            <button class="menuButton" data-target="rewards">
-
-                🦴
-                <span>Rewards</span>
-
-            </button>
-
-            <button class="menuButton" data-target="calendar">
-
-                📅
-                <span>Calendar</span>
-
-            </button>
-
-            <button class="menuButton" data-target="activity">
+            <button>
 
                 🐾
-                <span>Activity</span>
+
+            </button>
+
+            <button>
+
+                📅
+
+            </button>
+
+            <button>
+
+                🎁
+
+            </button>
+
+            <button>
+
+                ⚙️
+
+            </button>
+
+        </nav>
+
+    </section>
+
+    <!-- Owner Dashboard -->
+
+    <section id="owner-dashboard" class="screen hidden">
+
+        <header>
+
+            <h2>
+
+                👑 Owner Dashboard
+
+            </h2>
+
+        </header>
+
+        <div class="admin-buttons">
+
+            <button class="large">
+
+                +1 Point
+
+            </button>
+
+            <button class="large">
+
+                +5 Points
+
+            </button>
+
+            <button class="large">
+
+                +10 Points
+
+            </button>
+
+            <button class="large">
+
+                Rewards
+
+            </button>
+
+            <button class="large">
+
+                Calendar
 
             </button>
 
         </div>
 
-        <button id="headPatButton">
+        <nav class="bottom-nav">
 
-            ♡ Head Pats ♡
+            <button>
 
-        </button>
-
-    </div>
-
-</section>
-
-
-
-<!-- ========================================= -->
-<!-- REWARDS -->
-<!-- ========================================= -->
-
-<section id="rewards" class="screen">
-
-    <div class="phoneCard">
-
-        <h2>🎁 Rewards</h2>
-
-        <div class="rewardCard">
-
-            <h3>🐾 Pets</h3>
-
-            <p>1 Point</p>
-
-            <button class="cuteButton">
-
-                Redeem
+                🐾
 
             </button>
 
-        </div>
+            <button>
 
-        <div class="rewardCard">
-
-            <h3>💆 Back Massage</h3>
-
-            <p>10 Points</p>
-
-            <button class="cuteButton">
-
-                Redeem
+                📅
 
             </button>
 
-        </div>
+            <button>
 
-        <div class="rewardCard">
-
-            <h3>🍿 Movie Night</h3>
-
-            <p>15 Points</p>
-
-            <button class="cuteButton">
-
-                Redeem
+                🎁
 
             </button>
 
-        </div>
+            <button>
 
-    </div>
+                ⚙️
 
-</section>
+            </button>
 
+        </nav>
 
-
-<!-- ========================================= -->
-<!-- CALENDAR -->
-<!-- ========================================= -->
-
-<section id="calendar" class="screen">
-
-    <div class="phoneCard">
-
-        <h2>📅 Calendar</h2>
-
-        <div id="calendarGrid">
-
-            <!-- JS fills this -->
-
-        </div>
-
-    </div>
-
-</section>
-
-
-
-<!-- ========================================= -->
-<!-- ACTIVITY -->
-<!-- ========================================= -->
-
-<section id="activity" class="screen">
-
-    <div class="phoneCard">
-
-        <h2>🐾 Activity</h2>
-
-        <div class="activityCard">
-
-            +1 Good Girl
-
-        </div>
-
-        <div class="activityCard">
-
-            +1 Good Girl
-
-        </div>
-
-        <div class="activityCard">
-
-            Rough Day
-
-        </div>
-
-    </div>
-
-</section>
-
-
-
-<!-- ========================================= -->
-<!-- PAW WIPE -->
-<!-- ========================================= -->
-
-<div id="pawTransition">
-
-    <span>🐾</span>
-    <span>🐾</span>
-    <span>🐾</span>
-    <span>🐾</span>
-    <span>🐾</span>
+    </section>
 
 </div>
 
-
-
-<!-- ========================================= -->
-<!-- HEART BURST -->
-<!-- ========================================= -->
-
-<div id="heartContainer"></div>
-
-
-
-<!-- ========================================= -->
-<!-- AUDIO -->
-<!-- ========================================= -->
-
-<audio id="buttonSound" preload="auto">
-    <source src="assets/sounds/pop.mp3">
-</audio>
-
-<audio id="dingSound" preload="auto">
-    <source src="assets/sounds/ding.mp3">
-</audio>
-
-<audio id="stampSound" preload="auto">
-    <source src="assets/sounds/stamp.mp3">
-</audio>
-
-
-
-<!-- ========================================= -->
-<!-- JS -->
-<!-- ========================================= -->
-
-<script src="js/navigation.js"></script>
-<script src="js/particles.js"></script>
-<script src="js/app.js"></script>
+<script type="module" src="js/app.js"></script>
 
 </body>
-
 </html>
