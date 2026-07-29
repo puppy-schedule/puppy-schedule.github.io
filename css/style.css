@@ -591,3 +591,21 @@ body.is-owner #addRewardBtn.ownerOnly {
     transform: none;
   }
 }
+
+/* ========== FORCE CENTERED LOGIN ========== */
+#loginScreen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  padding-bottom: 24px; /* remove the big bottom padding on login */
+}
+
+#loginScreen .loginContainer {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  flex: none;               /* important */
+  justify-content: center;
+}
