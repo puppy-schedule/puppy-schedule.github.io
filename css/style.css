@@ -1,1 +1,621 @@
 
+/*======================================================
+    Puppy Rewards
+    Mobile First
+======================================================*/
+
+:root{
+
+    /* Colors */
+
+    --pink:#FFB6DC;
+    --pink-light:#FFD9EC;
+    --pink-dark:#F27CB4;
+
+    --white:#FFFFFF;
+    --cream:#FFF8FC;
+
+    --text:#5A4B57;
+    --text-light:#9E8A98;
+
+    --card:#FFFFFF;
+
+    --shadow:
+        0 12px 35px rgba(0,0,0,.08);
+
+    --radius:24px;
+
+    --transition:.25s ease;
+
+}
+
+
+
+/*======================================================
+    Reset
+======================================================*/
+
+*{
+
+    margin:0;
+    padding:0;
+
+    box-sizing:border-box;
+
+    -webkit-tap-highlight-color:transparent;
+
+}
+
+html{
+
+    height:100%;
+
+}
+
+body{
+
+    min-height:100vh;
+
+    background:linear-gradient(
+        180deg,
+        #FFEAF5,
+        #FFD7EB
+    );
+
+    font-family:"Quicksand",sans-serif;
+
+    color:var(--text);
+
+    overflow:hidden;
+
+}
+
+
+
+/*======================================================
+    App
+======================================================*/
+
+#app{
+
+    position:relative;
+
+    width:100vw;
+    height:100vh;
+
+    max-width:430px;
+
+    margin:auto;
+
+    overflow:hidden;
+
+}
+
+
+
+/*======================================================
+    Background
+======================================================*/
+
+#background{
+
+    position:absolute;
+
+    inset:0;
+
+    overflow:hidden;
+
+    z-index:-1;
+
+}
+
+.blob{
+
+    position:absolute;
+
+    border-radius:50%;
+
+    opacity:.25;
+
+    filter:blur(60px);
+
+}
+
+.blob1{
+
+    width:220px;
+    height:220px;
+
+    background:#FFC5E5;
+
+    top:-60px;
+    left:-40px;
+
+}
+
+.blob2{
+
+    width:260px;
+    height:260px;
+
+    background:#FFF4B8;
+
+    bottom:-120px;
+    right:-90px;
+
+}
+
+.blob3{
+
+    width:180px;
+    height:180px;
+
+    background:#FFD4F6;
+
+    top:40%;
+
+    left:65%;
+
+}
+
+
+
+/*======================================================
+    Screens
+======================================================*/
+
+.screen{
+
+    position:absolute;
+
+    inset:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    opacity:1;
+
+    transition:.35s;
+
+    padding:24px;
+
+}
+
+.hidden{
+
+    opacity:0;
+
+    pointer-events:none;
+
+}
+
+
+
+/*======================================================
+    Login
+======================================================*/
+
+.loginContainer{
+
+    flex:1;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    gap:28px;
+
+}
+
+.logo{
+
+    text-align:center;
+
+}
+
+.logo h1{
+
+    font-family:"Fredoka",sans-serif;
+
+    font-size:2.5rem;
+
+    margin-top:12px;
+
+}
+
+.logo p{
+
+    margin-top:10px;
+
+    color:var(--text-light);
+
+}
+
+.paw{
+
+    font-size:4rem;
+
+}
+
+
+
+/*======================================================
+    Cards
+======================================================*/
+
+.card{
+
+    background:white;
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+    padding:22px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+
+
+/*======================================================
+    Inputs
+======================================================*/
+
+input{
+
+    border:none;
+
+    background:#FFF5FA;
+
+    border-radius:18px;
+
+    padding:18px;
+
+    font-size:1rem;
+
+    outline:none;
+
+    transition:.2s;
+
+}
+
+input:focus{
+
+    background:white;
+
+    box-shadow:0 0 0 3px rgba(255,182,220,.35);
+
+}
+
+
+
+/*======================================================
+    Buttons
+======================================================*/
+
+button{
+
+    border:none;
+
+    cursor:pointer;
+
+    font-size:1rem;
+
+    font-weight:700;
+
+    font-family:"Quicksand";
+
+    border-radius:18px;
+
+    padding:18px;
+
+    transition:var(--transition);
+
+}
+
+button:active{
+
+    transform:scale(.97);
+
+}
+
+#loginButton,
+#finishRegister,
+#generateCode,
+#linkButton{
+
+    background:var(--pink);
+
+    color:white;
+
+}
+
+.secondary{
+
+    background:white;
+
+    border:2px solid var(--pink);
+
+    color:var(--pink-dark);
+
+}
+
+
+
+/*======================================================
+    Header
+======================================================*/
+
+header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+
+
+/*======================================================
+    Wallet
+======================================================*/
+
+.walletCard{
+
+    background:white;
+
+    border-radius:30px;
+
+    box-shadow:var(--shadow);
+
+    padding:30px;
+
+    text-align:center;
+
+}
+
+.walletTitle{
+
+    font-size:.95rem;
+
+    color:var(--text-light);
+
+}
+
+#pointCounter{
+
+    font-family:"Fredoka";
+
+    font-size:3.3rem;
+
+    margin-top:10px;
+
+}
+
+
+
+/*======================================================
+    Praise Feed
+======================================================*/
+
+.praiseCard{
+
+    margin-top:22px;
+
+    background:white;
+
+    border-radius:26px;
+
+    padding:20px;
+
+    box-shadow:var(--shadow);
+
+}
+
+.praise{
+
+    margin-top:14px;
+
+    background:#FFF6FB;
+
+    border-radius:16px;
+
+    padding:14px;
+
+}
+
+
+
+/*======================================================
+    Quick Actions
+======================================================*/
+
+.quickActions{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:14px;
+
+    margin-top:22px;
+
+}
+
+.quickActions button{
+
+    background:#FFD2E9;
+
+}
+
+
+
+/*======================================================
+    Panels
+======================================================*/
+
+.panel{
+
+    display:none;
+
+    animation:fade .25s ease;
+
+}
+
+.panel.active{
+
+    display:block;
+
+}
+
+
+
+/*======================================================
+    Bottom Navigation
+======================================================*/
+
+#bottomNav{
+
+    position:absolute;
+
+    left:18px;
+    right:18px;
+    bottom:20px;
+
+    height:74px;
+
+    background:white;
+
+    border-radius:28px;
+
+    box-shadow:var(--shadow);
+
+    display:flex;
+
+    justify-content:space-around;
+
+    align-items:center;
+
+}
+
+.navButton{
+
+    background:none;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:8px;
+
+    color:var(--text-light);
+
+}
+
+.navButton.active{
+
+    color:var(--pink-dark);
+
+}
+
+.navButton span{
+
+    font-size:1.4rem;
+
+}
+
+.navButton small{
+
+    margin-top:4px;
+
+}
+
+
+
+/*======================================================
+    Owner Only
+======================================================*/
+
+.ownerOnly{
+
+    display:none;
+
+}
+
+
+
+/*======================================================
+    Utilities
+======================================================*/
+
+.center{
+
+    text-align:center;
+
+}
+
+.pageHeader{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    margin-bottom:24px;
+
+}
+
+.backButton{
+
+    width:48px;
+    height:48px;
+
+    border-radius:50%;
+
+    background:white;
+
+    box-shadow:var(--shadow);
+
+}
+
+
+
+/*======================================================
+    Animations
+======================================================*/
+
+@keyframes fade{
+
+    from{
+
+        opacity:0;
+        transform:translateY(10px);
+
+    }
+
+    to{
+
+        opacity:1;
+        transform:none;
+
+    }
+
+}
