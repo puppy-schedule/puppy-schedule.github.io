@@ -1,621 +1,132 @@
-
-/*======================================================
-    Puppy Rewards
-    Mobile First
-======================================================*/
-
-:root{
-
-    /* Colors */
-
-    --pink:#FFB6DC;
-    --pink-light:#FFD9EC;
-    --pink-dark:#F27CB4;
-
-    --white:#FFFFFF;
-    --cream:#FFF8FC;
-
-    --text:#5A4B57;
-    --text-light:#9E8A98;
-
-    --card:#FFFFFF;
-
-    --shadow:
-        0 12px 35px rgba(0,0,0,.08);
-
-    --radius:24px;
-
-    --transition:.25s ease;
-
+:root {
+  --pink: #ff69b4;
+  --light-pink: #ffe4f0;
+  --hot-pink: #ff1493;
+  --cream: #fff5f8;
+  --text: #5a2a3a;
 }
 
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-
-/*======================================================
-    Reset
-======================================================*/
-
-*{
-
-    margin:0;
-    padding:0;
-
-    box-sizing:border-box;
-
-    -webkit-tap-highlight-color:transparent;
-
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: linear-gradient(135deg, #ffe4f0, #ffcce0);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
 }
 
-html{
+.screen { display: none; width: 100%; max-width: 480px; }
+.screen.active { display: block; animation: fadeIn 0.4s ease; }
 
-    height:100%;
-
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-body{
-
-    min-height:100vh;
-
-    background:linear-gradient(
-        180deg,
-        #FFEAF5,
-        #FFD7EB
-    );
-
-    font-family:"Quicksand",sans-serif;
-
-    color:var(--text);
-
-    overflow:hidden;
-
+.card.cute {
+  background: white;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(255, 105, 180, 0.25);
+  border: 3px solid var(--pink);
+  text-align: center;
 }
 
+h1, h2 { color: var(--hot-pink); }
 
-
-/*======================================================
-    App
-======================================================*/
-
-#app{
-
-    position:relative;
-
-    width:100vw;
-    height:100vh;
-
-    max-width:430px;
-
-    margin:auto;
-
-    overflow:hidden;
-
+input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  margin: 0.5rem 0;
+  border: 2px solid #ffb6c1;
+  border-radius: 16px;
+  font-size: 1rem;
+  background: var(--cream);
 }
 
-
-
-/*======================================================
-    Background
-======================================================*/
-
-#background{
-
-    position:absolute;
-
-    inset:0;
-
-    overflow:hidden;
-
-    z-index:-1;
-
+.pink-btn {
+  background: linear-gradient(135deg, var(--pink), var(--hot-pink));
+  color: white;
+  border: none;
+  padding: 0.9rem 1.5rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 0.8rem;
+  box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
 }
 
-.blob{
+.pink-btn:active { transform: scale(0.97); }
 
-    position:absolute;
+.points-display {
+  text-align: center;
+  margin: 1.5rem 0;
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--hot-pink);
+}
+.points-display .label { font-size: 1rem; display: block; }
 
-    border-radius:50%;
-
-    opacity:.25;
-
-    filter:blur(60px);
-
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.tab {
+  flex: 1;
+  padding: 0.7rem;
+  border: 2px solid var(--pink);
+  background: white;
+  border-radius: 20px;
+  color: var(--pink);
+  font-weight: 600;
+}
+.tab.active {
+  background: var(--pink);
+  color: white;
 }
 
-.blob1{
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-    width:220px;
-    height:220px;
-
-    background:#FFC5E5;
-
-    top:-60px;
-    left:-40px;
-
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
-.blob2{
-
-    width:260px;
-    height:260px;
-
-    background:#FFF4B8;
-
-    bottom:-120px;
-    right:-90px;
-
+.tiny-btn {
+  background: transparent;
+  border: 1px solid var(--pink);
+  color: var(--pink);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
 }
 
-.blob3{
+.error { color: #e91e63; font-size: 0.9rem; margin-top: 0.5rem; }
+.tiny { font-size: 0.75rem; opacity: 0.7; margin-top: 1rem; }
 
-    width:180px;
-    height:180px;
-
-    background:#FFD4F6;
-
-    top:40%;
-
-    left:65%;
-
+.admin-section {
+  background: white;
+  border-radius: 20px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border: 2px solid #ffb6c1;
 }
 
-
-
-/*======================================================
-    Screens
-======================================================*/
-
-.screen{
-
-    position:absolute;
-
-    inset:0;
-
-    display:flex;
-
-    flex-direction:column;
-
-    opacity:1;
-
-    transition:.35s;
-
-    padding:24px;
-
+.dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 4px 0 12px;
 }
-
-.hidden{
-
-    opacity:0;
-
-    pointer-events:none;
-
-}
-
-
-
-/*======================================================
-    Login
-======================================================*/
-
-.loginContainer{
-
-    flex:1;
-
-    display:flex;
-
-    flex-direction:column;
-
-    justify-content:center;
-
-    gap:28px;
-
-}
-
-.logo{
-
-    text-align:center;
-
-}
-
-.logo h1{
-
-    font-family:"Fredoka",sans-serif;
-
-    font-size:2.5rem;
-
-    margin-top:12px;
-
-}
-
-.logo p{
-
-    margin-top:10px;
-
-    color:var(--text-light);
-
-}
-
-.paw{
-
-    font-size:4rem;
-
-}
-
-
-
-/*======================================================
-    Cards
-======================================================*/
-
-.card{
-
-    background:white;
-
-    border-radius:var(--radius);
-
-    box-shadow:var(--shadow);
-
-    padding:22px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:18px;
-
-}
-
-
-
-/*======================================================
-    Inputs
-======================================================*/
-
-input{
-
-    border:none;
-
-    background:#FFF5FA;
-
-    border-radius:18px;
-
-    padding:18px;
-
-    font-size:1rem;
-
-    outline:none;
-
-    transition:.2s;
-
-}
-
-input:focus{
-
-    background:white;
-
-    box-shadow:0 0 0 3px rgba(255,182,220,.35);
-
-}
-
-
-
-/*======================================================
-    Buttons
-======================================================*/
-
-button{
-
-    border:none;
-
-    cursor:pointer;
-
-    font-size:1rem;
-
-    font-weight:700;
-
-    font-family:"Quicksand";
-
-    border-radius:18px;
-
-    padding:18px;
-
-    transition:var(--transition);
-
-}
-
-button:active{
-
-    transform:scale(.97);
-
-}
-
-#loginButton,
-#finishRegister,
-#generateCode,
-#linkButton{
-
-    background:var(--pink);
-
-    color:white;
-
-}
-
-.secondary{
-
-    background:white;
-
-    border:2px solid var(--pink);
-
-    color:var(--pink-dark);
-
-}
-
-
-
-/*======================================================
-    Header
-======================================================*/
-
-header{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:20px;
-
-}
-
-
-
-/*======================================================
-    Wallet
-======================================================*/
-
-.walletCard{
-
-    background:white;
-
-    border-radius:30px;
-
-    box-shadow:var(--shadow);
-
-    padding:30px;
-
-    text-align:center;
-
-}
-
-.walletTitle{
-
-    font-size:.95rem;
-
-    color:var(--text-light);
-
-}
-
-#pointCounter{
-
-    font-family:"Fredoka";
-
-    font-size:3.3rem;
-
-    margin-top:10px;
-
-}
-
-
-
-/*======================================================
-    Praise Feed
-======================================================*/
-
-.praiseCard{
-
-    margin-top:22px;
-
-    background:white;
-
-    border-radius:26px;
-
-    padding:20px;
-
-    box-shadow:var(--shadow);
-
-}
-
-.praise{
-
-    margin-top:14px;
-
-    background:#FFF6FB;
-
-    border-radius:16px;
-
-    padding:14px;
-
-}
-
-
-
-/*======================================================
-    Quick Actions
-======================================================*/
-
-.quickActions{
-
-    display:grid;
-
-    grid-template-columns:repeat(2,1fr);
-
-    gap:14px;
-
-    margin-top:22px;
-
-}
-
-.quickActions button{
-
-    background:#FFD2E9;
-
-}
-
-
-
-/*======================================================
-    Panels
-======================================================*/
-
-.panel{
-
-    display:none;
-
-    animation:fade .25s ease;
-
-}
-
-.panel.active{
-
-    display:block;
-
-}
-
-
-
-/*======================================================
-    Bottom Navigation
-======================================================*/
-
-#bottomNav{
-
-    position:absolute;
-
-    left:18px;
-    right:18px;
-    bottom:20px;
-
-    height:74px;
-
-    background:white;
-
-    border-radius:28px;
-
-    box-shadow:var(--shadow);
-
-    display:flex;
-
-    justify-content:space-around;
-
-    align-items:center;
-
-}
-
-.navButton{
-
-    background:none;
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    justify-content:center;
-
-    padding:8px;
-
-    color:var(--text-light);
-
-}
-
-.navButton.active{
-
-    color:var(--pink-dark);
-
-}
-
-.navButton span{
-
-    font-size:1.4rem;
-
-}
-
-.navButton small{
-
-    margin-top:4px;
-
-}
-
-
-
-/*======================================================
-    Owner Only
-======================================================*/
-
-.ownerOnly{
-
-    display:none;
-
-}
-
-
-
-/*======================================================
-    Utilities
-======================================================*/
-
-.center{
-
-    text-align:center;
-
-}
-
-.pageHeader{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:18px;
-
-    margin-bottom:24px;
-
-}
-
-.backButton{
-
-    width:48px;
-    height:48px;
-
-    border-radius:50%;
-
-    background:white;
-
-    box-shadow:var(--shadow);
-
-}
-
-
-
-/*======================================================
-    Animations
-======================================================*/
-
-@keyframes fade{
-
-    from{
-
-        opacity:0;
-        transform:translateY(10px);
-
-    }
-
-    to{
-
-        opacity:1;
-        transform:none;
-
-    }
-
-}
+.dot.period { background: #ff69b4; }
+.dot.spicy { background: #ff1493; }
