@@ -1,4 +1,93 @@
 /*======================================================
+  FIX: Full screen + Safe areas (notch / home bar)
+======================================================*/
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100%;
+  min-height: 100dvh;                /* modern dynamic viewport */
+  min-height: -webkit-fill-available;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: linear-gradient(165deg, #ffeaf5 0%, #ffd7eb 50%, #fce4f6 100%);
+}
+
+/* The main app container */
+#app {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100%;
+  height: 100dvh;
+  height: -webkit-fill-available;
+  overflow: hidden;
+  /* Safe areas */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  box-sizing: border-box;
+}
+
+/* Screens should fill the available space inside #app */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Login gets extra bottom padding removed so it stays centered */
+#loginScreen {
+  padding-bottom: 20px;
+  justify-content: center;
+}
+
+/* Dashboard needs room for the bottom nav */
+#dashboard {
+  padding-bottom: 0;
+}
+
+/*======================================================
+  Bottom Navigation – sit above the home indicator
+======================================================*/
+#bottomNav {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  height: 68px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(242, 124, 180, 0.2);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border: 2px solid rgba(255, 182, 220, 0.5);
+  z-index: 50;
+}
+
+/* Make sure the content area doesn't go under the nav */
+#dashboard .panel {
+  padding-bottom: 90px; /* height of nav + some breathing room */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/*======================================================
   Puppy Rewards – Super Cute Edition
 ======================================================*/
 :root {
