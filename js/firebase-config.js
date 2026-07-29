@@ -1,4 +1,3 @@
-// Paste your real config here
 const firebaseConfig = {
   apiKey: "AIzaSyCmARe2I08IYzYiI1YOEIPDkwPTv-fRKKk",
   authDomain: "authentication-25a53.firebaseapp.com",
@@ -11,4 +10,4 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
-const db = firebase.firestore();
+const db   = firebase.firestore();
