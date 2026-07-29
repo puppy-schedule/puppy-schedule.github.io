@@ -2,7 +2,11 @@
 // Screen helpers
 // ─────────────────────────────────────────────
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.add('hidden');
+    s.classList.remove('active');
+  });
+
   const el = document.getElementById(id);
   if (el) {
     el.classList.remove('hidden');
@@ -10,48 +14,56 @@ function showScreen(id) {
   }
 }
 
-function hideAllScreens() {
-  document.querySelectorAll('.screen').forEach(s => {
-    s.classList.add('hidden');
-    s.classList.remove('active');
+// ─────────────────────────────────────────────
+// Global state
+// ─────────────────────────────────────────────
+let currentUserData = null;
+let selectedRole = null;
+
+// ─────────────────────────────────────────────
+// LOGIN BUTTON
+// ─────────────────────────────────────────────
+const loginBtn = document.getElementById('loginButton');
+if (loginBtn) {
+  loginBtn.addEventListener('click', async () => {
+    const email = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errorEl = document.getElementById('loginError');
+
+    if (errorEl) errorEl.textContent = '';
+
+    if (!email || !password) {
+      if (errorEl) errorEl.textContent = 'Please fill in both fields';
+      return;
+    }
+
+    try {
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Logging in...';
+      await auth.signInWithEmailAndPassword(email, password);
+      // onAuthStateChanged will take over
+    } catch (err) {
+      console.error(err);
+      if (errorEl) errorEl.textContent = friendlyError(err);
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login ♡';
+    }
   });
 }
 
 // ─────────────────────────────────────────────
-// Current user data (cached)
+// CREATE ACCOUNT BUTTON
 // ─────────────────────────────────────────────
-let currentUserData = null;
-let selectedRole = null; // "owner" | "puppy"
-
-// ─────────────────────────────────────────────
-// LOGIN
-// ─────────────────────────────────────────────
-document.getElementById('loginButton').addEventListener('click', async () => {
-  const email    = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  const errorEl  = document.getElementById('loginError');
-  errorEl.textContent = '';
-
-  if (!email || !password) {
-    errorEl.textContent = 'Please fill in both fields';
-    return;
-  }
-
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-    // onAuthStateChanged will handle the rest
-  } catch (err) {
-    errorEl.textContent = friendlyError(err);
-  }
-});
-
-// Go to register
-document.getElementById('createAccountButton').addEventListener('click', () => {
-  showScreen('registerScreen');
-});
+const createBtn = document.getElementById('createAccountButton');
+if (createBtn) {
+  createBtn.addEventListener('click', () => {
+    showScreen('registerScreen');
+  });
+}
 
 // ─────────────────────────────────────────────
-// REGISTER
+// ROLE SELECTION
 // ─────────────────────────────────────────────
 document.querySelectorAll('.role-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -61,55 +73,70 @@ document.querySelectorAll('.role-btn').forEach(btn => {
   });
 });
 
-document.getElementById('finishRegister').addEventListener('click', async () => {
-  const email    = document.getElementById('newUsername').value.trim();
-  const password = document.getElementById('newPassword').value;
-  const confirm  = document.getElementById('confirmPassword').value;
-  const errorEl  = document.getElementById('registerError');
-  errorEl.textContent = '';
+// ─────────────────────────────────────────────
+// FINISH REGISTER
+// ─────────────────────────────────────────────
+const finishBtn = document.getElementById('finishRegister');
+if (finishBtn) {
+  finishBtn.addEventListener('click', async () => {
+    const email = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+    const errorEl = document.getElementById('registerError');
 
-  if (!email || !password || !confirm) {
-    errorEl.textContent = 'Please fill in all fields';
-    return;
-  }
-  if (password !== confirm) {
-    errorEl.textContent = 'Passwords do not match';
-    return;
-  }
-  if (!selectedRole) {
-    errorEl.textContent = 'Please choose Owner or Puppy';
-    return;
-  }
-  if (password.length < 6) {
-    errorEl.textContent = 'Password must be at least 6 characters';
-    return;
-  }
+    if (errorEl) errorEl.textContent = '';
 
-  try {
-    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    if (!email || !password || !confirm) {
+      if (errorEl) errorEl.textContent = 'Please fill in all fields';
+      return;
+    }
+    if (password !== confirm) {
+      if (errorEl) errorEl.textContent = 'Passwords do not match';
+      return;
+    }
+    if (!selectedRole) {
+      if (errorEl) errorEl.textContent = 'Please choose Owner or Puppy';
+      return;
+    }
+    if (password.length < 6) {
+      if (errorEl) errorEl.textContent = 'Password must be at least 6 characters';
+      return;
+    }
 
-    // Create user document
-    await db.collection('users').doc(cred.user.uid).set({
-      role: selectedRole,
-      displayName: email.split('@')[0],
-      points: 0,
-      linkedUid: null,
-      inviteCode: null,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    try {
+      finishBtn.disabled = true;
+      finishBtn.textContent = 'Creating...';
 
-    // onAuthStateChanged will continue
-  } catch (err) {
-    errorEl.textContent = friendlyError(err);
-  }
-});
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
 
-// Back buttons
-document.getElementById('backFromRegister').addEventListener('click', () => {
+      await db.collection('users').doc(cred.user.uid).set({
+        role: selectedRole,
+        displayName: email.split('@')[0],
+        points: 0,
+        linkedUid: null,
+        inviteCode: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // onAuthStateChanged will continue
+    } catch (err) {
+      console.error(err);
+      if (errorEl) errorEl.textContent = friendlyError(err);
+    } finally {
+      finishBtn.disabled = false;
+      finishBtn.textContent = 'Continue ♡';
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// BACK BUTTONS
+// ─────────────────────────────────────────────
+document.getElementById('backFromRegister')?.addEventListener('click', () => {
   showScreen('loginScreen');
 });
-document.getElementById('backFromInvite').addEventListener('click', () => {
-  // If already logged in, go to dashboard, otherwise login
+
+document.getElementById('backFromInvite')?.addEventListener('click', () => {
   if (auth.currentUser) {
     showScreen('dashboard');
   } else {
@@ -118,9 +145,9 @@ document.getElementById('backFromInvite').addEventListener('click', () => {
 });
 
 // ─────────────────────────────────────────────
-// INVITE / LINK SYSTEM
+// INVITE CODE SYSTEM
 // ─────────────────────────────────────────────
-document.getElementById('generateCode').addEventListener('click', async () => {
+document.getElementById('generateCode')?.addEventListener('click', async () => {
   if (!auth.currentUser) return;
 
   const code = generateInviteCode();
@@ -128,21 +155,21 @@ document.getElementById('generateCode').addEventListener('click', async () => {
     inviteCode: code
   });
 
-  document.getElementById('inviteCode').textContent = code;
+  const codeEl = document.getElementById('inviteCode');
+  if (codeEl) codeEl.textContent = code;
 });
 
-document.getElementById('linkButton').addEventListener('click', async () => {
+document.getElementById('linkButton')?.addEventListener('click', async () => {
   const code = document.getElementById('codeInput').value.trim().toUpperCase();
   const errorEl = document.getElementById('linkError');
-  errorEl.textContent = '';
+  if (errorEl) errorEl.textContent = '';
 
   if (!code) {
-    errorEl.textContent = 'Please enter a code';
+    if (errorEl) errorEl.textContent = 'Please enter a code';
     return;
   }
 
   try {
-    // Find the puppy who has this invite code
     const snap = await db.collection('users')
       .where('inviteCode', '==', code)
       .where('role', '==', 'puppy')
@@ -150,29 +177,26 @@ document.getElementById('linkButton').addEventListener('click', async () => {
       .get();
 
     if (snap.empty) {
-      errorEl.textContent = 'Invalid or expired code';
+      if (errorEl) errorEl.textContent = 'Invalid or expired code';
       return;
     }
 
-    const puppyDoc = snap.docs[0];
-    const puppyUid = puppyDoc.id;
+    const puppyUid = snap.docs[0].id;
 
-    // Link: owner stores the puppy's uid
     await db.collection('users').doc(auth.currentUser.uid).update({
       linkedUid: puppyUid
     });
 
-    // Optional: clear the invite code so it can't be reused
     await db.collection('users').doc(puppyUid).update({
       inviteCode: null
     });
 
-    errorEl.textContent = '';
     alert('Successfully linked! ♡');
     showScreen('dashboard');
-    loadUserUI(); // refresh
+    loadUserUI();
   } catch (err) {
-    errorEl.textContent = err.message;
+    console.error(err);
+    if (errorEl) errorEl.textContent = err.message;
   }
 });
 
@@ -187,7 +211,7 @@ function generateInviteCode() {
 }
 
 // ─────────────────────────────────────────────
-// AUTH STATE LISTENER
+// AUTH STATE
 // ─────────────────────────────────────────────
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
@@ -197,79 +221,81 @@ auth.onAuthStateChanged(async (user) => {
     return;
   }
 
-  // Load user document
-  const doc = await db.collection('users').doc(user.uid).get();
+  try {
+    const docRef = db.collection('users').doc(user.uid);
+    let doc = await docRef.get();
 
-  if (!doc.exists) {
-    // Shouldn't happen, but just in case
-    await db.collection('users').doc(user.uid).set({
-      role: 'puppy',
-      displayName: user.email.split('@')[0],
-      points: 0,
-      linkedUid: null,
-      inviteCode: null,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    currentUserData = (await db.collection('users').doc(user.uid).get()).data();
-  } else {
+    if (!doc.exists) {
+      await docRef.set({
+        role: 'puppy',
+        displayName: user.email ? user.email.split('@')[0] : 'puppy',
+        points: 0,
+        linkedUid: null,
+        inviteCode: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      doc = await docRef.get();
+    }
+
     currentUserData = doc.data();
-  }
 
-  // Set body class for owner-only CSS
-  if (currentUserData.role === 'owner') {
-    document.body.classList.add('is-owner');
-  } else {
-    document.body.classList.remove('is-owner');
-  }
+    if (currentUserData.role === 'owner') {
+      document.body.classList.add('is-owner');
+    } else {
+      document.body.classList.remove('is-owner');
+    }
 
-  // Decide which screen to show
-  if (currentUserData.role === 'owner' && !currentUserData.linkedUid) {
-    // Owner not linked yet → show invite screen
-    showScreen('inviteScreen');
-  } else if (currentUserData.role === 'puppy' && !currentUserData.linkedUid) {
-    // Puppy not linked → also show invite (so they can generate code)
-    showScreen('inviteScreen');
-  } else {
-    showScreen('dashboard');
-  }
+    // Decide screen
+    if (!currentUserData.linkedUid) {
+      showScreen('inviteScreen');
+    } else {
+      showScreen('dashboard');
+    }
 
-  loadUserUI();
+    loadUserUI();
+  } catch (err) {
+    console.error('Auth state error:', err);
+    showScreen('loginScreen');
+  }
 });
 
 // ─────────────────────────────────────────────
-// UI helpers after login
+// Load UI after login
 // ─────────────────────────────────────────────
 async function loadUserUI() {
   if (!currentUserData || !auth.currentUser) return;
 
   const welcome = document.getElementById('welcomeText');
-  const rel     = document.getElementById('relationshipName');
+  const rel = document.getElementById('relationshipName');
 
-  const name = currentUserData.displayName || 'there';
-  welcome.textContent = currentUserData.role === 'owner'
-    ? `Hello, Owner`
-    : `Good girl, ${name}`;
-
-  if (currentUserData.linkedUid) {
-    rel.textContent = '♡ Linked';
-  } else {
-    rel.textContent = 'Not linked yet';
+  if (welcome) {
+    const name = currentUserData.displayName || 'there';
+    welcome.textContent = currentUserData.role === 'owner'
+      ? 'Hello, Owner'
+      : `Good girl, ${name}`;
   }
 
-  // Start real-time points listener
-  startPointsListener();
+  if (rel) {
+    rel.textContent = currentUserData.linkedUid ? '♡ Linked' : 'Not linked yet';
+  }
+
+  // Start points listener (defined in app.js)
+  if (typeof startPointsListener === 'function') {
+    startPointsListener();
+  }
 }
 
 // ─────────────────────────────────────────────
-// Logout
+// Logout + Settings
 // ─────────────────────────────────────────────
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
   auth.signOut();
 });
 
 document.getElementById('settingsButton')?.addEventListener('click', () => {
-  // simple: switch to settings panel
-  switchPanel('settingsPanel');
+  if (typeof switchPanel === 'function') {
+    switchPanel('settingsPanel');
+  }
 });
 
 document.getElementById('goToLink')?.addEventListener('click', () => {
@@ -277,21 +303,21 @@ document.getElementById('goToLink')?.addEventListener('click', () => {
 });
 
 // ─────────────────────────────────────────────
-// Friendly error messages
+// Friendly errors
 // ─────────────────────────────────────────────
 function friendlyError(err) {
-  const msg = err.code || err.message || '';
-  if (msg.includes('user-not-found') || msg.includes('wrong-password')) {
+  const msg = (err.code || err.message || '').toLowerCase();
+  if (msg.includes('user-not-found') || msg.includes('wrong-password') || msg.includes('invalid-credential')) {
     return 'Wrong email or password';
   }
   if (msg.includes('email-already-in-use')) {
     return 'That email is already registered';
   }
   if (msg.includes('weak-password')) {
-    return 'Password is too weak';
+    return 'Password is too weak (min 6 characters)';
   }
   if (msg.includes('invalid-email')) {
-    return 'Please enter a valid email';
+    return 'Please enter a valid email address';
   }
   return err.message || 'Something went wrong';
 }
