@@ -1,132 +1,593 @@
+/*======================================================
+  Puppy Rewards – Super Cute Edition
+======================================================*/
 :root {
-  --pink: #ff69b4;
-  --light-pink: #ffe4f0;
-  --hot-pink: #ff1493;
-  --cream: #fff5f8;
-  --text: #5a2a3a;
+  --pink: #ffb6dc;
+  --pink-light: #ffd9ec;
+  --pink-dark: #f27cb4;
+  --hot: #ff4d94;
+  --white: #ffffff;
+  --cream: #fff7fb;
+  --text: #5a4b57;
+  --text-light: #9e8a98;
+  --card: #ffffff;
+  --shadow: 0 12px 35px rgba(242, 124, 180, 0.18);
+  --radius: 24px;
+  --transition: 0.25s ease;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+}
 
 body {
-  font-family: "Segoe UI", system-ui, sans-serif;
-  background: linear-gradient(135deg, #ffe4f0, #ffcce0);
-  color: var(--text);
   min-height: 100vh;
+  background: linear-gradient(165deg, #ffeaf5 0%, #ffd7eb 50%, #fce4f6 100%);
+  font-family: "Quicksand", system-ui, sans-serif;
+  color: var(--text);
+  overflow: hidden;
+}
+
+/*======================================================
+  App container (phone frame)
+======================================================*/
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/*======================================================
+  Background blobs + paw prints
+======================================================*/
+#background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.28;
+  filter: blur(60px);
+}
+
+.blob1 {
+  width: 240px;
+  height: 240px;
+  background: #ffc5e5;
+  top: -70px;
+  left: -50px;
+}
+
+.blob2 {
+  width: 280px;
+  height: 280px;
+  background: #fff0b8;
+  bottom: -140px;
+  right: -100px;
+}
+
+.blob3 {
+  width: 190px;
+  height: 190px;
+  background: #ffd4f6;
+  top: 42%;
+  left: 62%;
+}
+
+.paw-prints {
+  position: absolute;
+  top: 18%;
+  left: -10%;
+  width: 120%;
+  font-size: 1.6rem;
+  opacity: 0.13;
+  letter-spacing: 1.8rem;
+  transform: rotate(-9deg);
+  user-select: none;
+}
+
+/*======================================================
+  Screens
+======================================================*/
+.screen {
+  position: absolute;
+  inset: 0;
   display: flex;
-  justify-content: center;
-  padding: 1rem;
+  flex-direction: column;
+  padding: 24px;
+  padding-bottom: 110px; /* space for bottom nav */
+  opacity: 1;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
-.screen { display: none; width: 100%; max-width: 480px; }
-.screen.active { display: block; animation: fadeIn 0.4s ease; }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+.screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
 }
 
-.card.cute {
-  background: white;
-  border-radius: 24px;
-  padding: 2rem;
-  box-shadow: 0 10px 30px rgba(255, 105, 180, 0.25);
-  border: 3px solid var(--pink);
-  text-align: center;
-}
-
-h1, h2 { color: var(--hot-pink); }
-
-input {
-  width: 100%;
-  padding: 0.9rem 1rem;
-  margin: 0.5rem 0;
-  border: 2px solid #ffb6c1;
-  border-radius: 16px;
-  font-size: 1rem;
-  background: var(--cream);
-}
-
-.pink-btn {
-  background: linear-gradient(135deg, var(--pink), var(--hot-pink));
-  color: white;
-  border: none;
-  padding: 0.9rem 1.5rem;
-  border-radius: 50px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 0.8rem;
-  box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
-}
-
-.pink-btn:active { transform: scale(0.97); }
-
-.points-display {
-  text-align: center;
-  margin: 1.5rem 0;
-  font-size: 3.5rem;
-  font-weight: 700;
-  color: var(--hot-pink);
-}
-.points-display .label { font-size: 1rem; display: block; }
-
-.tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-.tab {
+/*======================================================
+  Login – perfectly centered
+======================================================*/
+.loginContainer {
   flex: 1;
-  padding: 0.7rem;
-  border: 2px solid var(--pink);
-  background: white;
-  border-radius: 20px;
-  color: var(--pink);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding-bottom: 40px;
+}
+
+.logo {
+  text-align: center;
+}
+
+.logo .paw {
+  font-size: 4.2rem;
+  filter: drop-shadow(0 4px 8px rgba(242, 124, 180, 0.3));
+}
+
+.logo h1 {
+  font-family: "Fredoka", sans-serif;
+  font-size: 2.6rem;
   font-weight: 600;
+  color: var(--hot);
+  margin-top: 6px;
+  letter-spacing: -0.5px;
 }
-.tab.active {
-  background: var(--pink);
+
+.logo p {
+  margin-top: 8px;
+  color: var(--text-light);
+  font-size: 1.05rem;
+}
+
+/*======================================================
+  Cards
+======================================================*/
+.card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 2px solid rgba(255, 182, 220, 0.6);
+}
+
+/*======================================================
+  Inputs
+======================================================*/
+input {
+  border: none;
+  background: #fff5fa;
+  border-radius: 18px;
+  padding: 17px 18px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+  transition: 0.2s;
+}
+
+input:focus {
+  background: white;
+  box-shadow: 0 0 0 4px rgba(255, 182, 220, 0.35);
+}
+
+/*======================================================
+  Buttons
+======================================================*/
+button {
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: "Quicksand", sans-serif;
+  border-radius: 18px;
+  padding: 17px;
+  transition: var(--transition);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+#loginButton,
+#finishRegister,
+#generateCode,
+#linkButton {
+  background: linear-gradient(135deg, #ff8ec4, #ff4d94);
   color: white;
+  box-shadow: 0 6px 18px rgba(255, 77, 148, 0.35);
 }
 
-.tab-content { display: none; }
-.tab-content.active { display: block; }
+.secondary {
+  background: white;
+  border: 2.5px solid var(--pink);
+  color: var(--pink-dark);
+}
 
-.top-bar {
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  padding: 0;
+}
+
+/*======================================================
+  Role selection
+======================================================*/
+.role-title {
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.roleButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.role-btn {
+  background: #fff5fa;
+  border: 2.5px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 10px;
+  color: var(--text);
+}
+
+.role-btn .emoji {
+  font-size: 1.8rem;
+}
+
+.role-btn.selected {
+  border-color: var(--pink-dark);
+  background: #ffe0f0;
+  color: var(--hot);
+}
+
+/*======================================================
+  Invite code
+======================================================*/
+.invite-code {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 3px;
+  text-align: center;
+  background: #fff0f7;
+  padding: 16px;
+  border-radius: 18px;
+  color: var(--hot);
+  border: 2px dashed var(--pink);
+}
+
+.divider {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #f0d0e0;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+/*======================================================
+  Header
+======================================================*/
+header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 18px;
 }
 
-.tiny-btn {
-  background: transparent;
-  border: 1px solid var(--pink);
-  color: var(--pink);
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
+header h2 {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.5rem;
+  color: var(--hot);
 }
 
-.error { color: #e91e63; font-size: 0.9rem; margin-top: 0.5rem; }
-.tiny { font-size: 0.75rem; opacity: 0.7; margin-top: 1rem; }
+header small {
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
 
-.admin-section {
+/*======================================================
+  Wallet card
+======================================================*/
+.walletCard {
   background: white;
-  border-radius: 20px;
-  padding: 1.2rem;
-  margin-bottom: 1rem;
-  border: 2px solid #ffb6c1;
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  padding: 28px 20px;
+  text-align: center;
+  border: 2px solid rgba(255, 182, 220, 0.5);
+}
+
+.walletTitle {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  letter-spacing: 0.5px;
+}
+
+#pointCounter {
+  font-family: "Fredoka", sans-serif;
+  font-size: 3.4rem;
+  margin-top: 6px;
+  color: var(--hot);
+  line-height: 1.1;
+}
+
+.wallet-sub {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+/*======================================================
+  Quick actions (Owner)
+======================================================*/
+.quickActions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.quickActions button {
+  background: #ffd2e9;
+  color: var(--pink-dark);
+  padding: 14px 6px;
+  font-size: 0.95rem;
+  border-radius: 16px;
+}
+
+/*======================================================
+  Praise feed
+======================================================*/
+.praiseCard {
+  margin-top: 20px;
+  background: white;
+  border-radius: 26px;
+  padding: 18px 18px 8px;
+  box-shadow: var(--shadow);
+  border: 2px solid rgba(255, 182, 220, 0.4);
+}
+
+.praiseCard h3 {
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+
+.praise {
+  margin-top: 10px;
+  background: #fff6fb;
+  border-radius: 16px;
+  padding: 13px 16px;
+  font-size: 0.95rem;
+}
+
+/*======================================================
+  Panels
+======================================================*/
+.panel {
+  display: none;
+  animation: fadeUp 0.3s ease;
+}
+
+.panel.active {
+  display: block;
+}
+
+.panel-title {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.4rem;
+  color: var(--hot);
+  margin-bottom: 14px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/*======================================================
+  Bottom Navigation
+======================================================*/
+#bottomNav {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 18px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(242, 124, 180, 0.2);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border: 2px solid rgba(255, 182, 220, 0.5);
+  z-index: 50;
+}
+
+.navButton {
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  color: var(--text-light);
+  font-size: 0.7rem;
+  gap: 3px;
+  border-radius: 16px;
+  min-width: 56px;
+}
+
+.navButton span {
+  font-size: 1.35rem;
+}
+
+.navButton.active {
+  color: var(--hot);
+}
+
+.navButton.active span {
+  transform: scale(1.15);
+}
+
+/*======================================================
+  Owner only
+======================================================*/
+.ownerOnly {
+  display: none !important;
+}
+
+body.is-owner .ownerOnly {
+  display: grid !important; /* or flex/block depending on context */
+}
+
+body.is-owner .quickActions.ownerOnly {
+  display: grid !important;
+}
+
+body.is-owner #addRewardBtn.ownerOnly {
+  display: flex !important;
+}
+
+/*======================================================
+  Misc
+======================================================*/
+.center { text-align: center; }
+.soft { color: var(--text-light); font-size: 0.95rem; }
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.pageHeader h2 {
+  font-family: "Fredoka", sans-serif;
+  color: var(--hot);
+}
+
+.backButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow);
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.error {
+  color: #e91e63;
+  font-size: 0.9rem;
+  text-align: center;
+  min-height: 1.2em;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-light);
+  padding: 30px 10px;
+}
+
+.legend {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--text-light);
 }
 
 .dot {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  margin: 0 4px 0 12px;
+  margin-right: 5px;
 }
-.dot.period { background: #ff69b4; }
-.dot.spicy { background: #ff1493; }
+
+.dot.period { background: #ff6b9d; }
+.dot.spicy { background: #ff3e7f; }
+
+.more-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.more-btn {
+  background: white;
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  border: 2px solid rgba(255, 182, 220, 0.4);
+}
+
+/*======================================================
+  Animations
+======================================================*/
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
