@@ -1,99 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Good Girl Rewards</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <!-- Firebase SDKs -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Puppy Rewards</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffb6dc">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Background decorations -->
+    <div id="background">
+      <div class="blob blob1"></div>
+      <div class="blob blob2"></div>
+      <div class="blob blob3"></div>
+      <div class="paw-prints">🐾 ♡ 🐾 ♡ 🐾 ♡ 🐾 ♡ 🐾</div>
+    </div>
+
+    <!-- ===================== LOGIN ===================== -->
+    <section id="loginScreen" class="screen active">
+      <div class="loginContainer">
+        <div class="logo">
+          <div class="paw">🐾</div>
+          <h1>Puppy Rewards</h1>
+          <p>be a good girl… earn treats</p>
+        </div>
+
+        <div class="card">
+          <input id="username" type="text" placeholder="Username or Email" autocomplete="username">
+          <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+          <button id="loginButton">Login ♡</button>
+          <button id="createAccountButton" class="secondary">Create Account</button>
+          <p id="loginError" class="error"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CREATE ACCOUNT ===================== -->
+    <section id="registerScreen" class="screen hidden">
+      <div class="pageHeader">
+        <button class="backButton" id="backFromRegister">←</button>
+        <h2>Create Account</h2>
+      </div>
+
+      <div class="card">
+        <input id="newUsername" placeholder="Username or Email">
+        <input id="newPassword" type="password" placeholder="Password">
+        <input id="confirmPassword" type="password" placeholder="Confirm Password">
+
+        <h3 class="role-title">I am a...</h3>
+        <div class="roleButtons">
+          <button id="ownerRole" class="role-btn" data-role="owner">
+            <span class="emoji">👑</span>
+            <span>Owner</span>
+          </button>
+          <button id="puppyRole" class="role-btn" data-role="puppy">
+            <span class="emoji">🐾</span>
+            <span>Puppy</span>
+          </button>
+        </div>
+
+        <button id="finishRegister">Continue ♡</button>
+        <p id="registerError" class="error"></p>
+      </div>
+    </section>
+
+    <!-- ===================== INVITE / LINK ===================== -->
+    <section id="inviteScreen" class="screen hidden">
+      <div class="pageHeader">
+        <button class="backButton" id="backFromInvite">←</button>
+        <h2>Link Accounts</h2>
+      </div>
+
+      <div class="card">
+        <p class="center soft">If you're the <strong>Puppy</strong>, generate a code for your Owner.</p>
+        <div id="inviteCode" class="invite-code">XXXX-XXXX</div>
+        <button id="generateCode">Generate Code 🐾</button>
+
+        <div class="divider">or</div>
+
+        <p class="center soft">If you're the <strong>Owner</strong>, enter your puppy’s code.</p>
+        <input id="codeInput" placeholder="Invite Code">
+        <button id="linkButton">Link Puppy ♡</button>
+        <p id="linkError" class="error"></p>
+      </div>
+    </section>
+
+    <!-- ===================== MAIN DASHBOARD ===================== -->
+    <section id="dashboard" class="screen hidden">
+
+      <!-- Header -->
+      <header>
+        <div>
+          <h2 id="welcomeText">Welcome</h2>
+          <small id="relationshipName">Not linked yet</small>
+        </div>
+        <button id="settingsButton" class="icon-btn">⚙️</button>
+      </header>
+
+      <!-- HOME -->
+      <main id="homePanel" class="panel active">
+        <div class="walletCard">
+          <div class="walletTitle">Good Girl Wallet</div>
+          <div id="pointCounter">⭐ 0</div>
+          <div class="wallet-sub">points</div>
+        </div>
+
+        <!-- Owner quick give buttons -->
+        <div class="quickActions ownerOnly">
+          <button data-points="1">+1</button>
+          <button data-points="5">+5</button>
+          <button data-points="10">+10</button>
+          <button id="customPointsBtn">Custom</button>
+        </div>
+
+        <div class="praiseCard">
+          <h3>Recent Praise</h3>
+          <div id="praiseFeed">
+            <div class="praise">🩷 You're such a good girl.</div>
+            <div class="praise">🐾 Good puppy!</div>
+          </div>
+        </div>
+      </main>
+
+      <!-- WALLET -->
+      <section id="walletPanel" class="panel">
+        <h2 class="panel-title">Wallet History</h2>
+        <div id="transactionList">
+          <p class="empty">No transactions yet…</p>
+        </div>
+      </section>
+
+      <!-- REWARDS -->
+      <section id="rewardPanel" class="panel">
+        <div class="panelHeader">
+          <h2 class="panel-title">Rewards</h2>
+          <button id="addRewardBtn" class="ownerOnly icon-btn">＋</button>
+        </div>
+        <div id="rewardList">
+          <p class="empty">No rewards yet</p>
+        </div>
+      </section>
+
+      <!-- CALENDAR -->
+      <section id="calendarPanel" class="panel">
+        <div class="panelHeader">
+          <h2 class="panel-title">Calendar</h2>
+        </div>
+        <div id="calendar"></div>
+        <div class="legend">
+          <span><i class="dot period"></i> Period</span>
+          <span><i class="dot spicy"></i> Spicy</span>
+        </div>
+      </section>
+
+      <!-- ACHIEVEMENTS / MORE -->
+      <section id="achievementPanel" class="panel">
+        <h2 class="panel-title">More</h2>
+        <div class="more-list">
+          <button class="more-btn">🏆 Achievements</button>
+          <button class="more-btn ownerOnly">📊 Statistics</button>
+          <button class="more-btn">🎨 Theme</button>
+          <button class="more-btn">🔊 Sounds</button>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="settingsPanel" class="panel">
+        <h2 class="panel-title">Settings</h2>
+        <div class="more-list">
+          <button class="more-btn">Edit Profile</button>
+          <button class="more-btn" id="goToLink">Link / Relationship</button>
+          <button class="more-btn" id="logoutBtn">Logout</button>
+        </div>
+      </section>
+
+      <!-- Bottom Navigation -->
+      <nav id="bottomNav">
+        <button class="navButton active" data-panel="homePanel">
+          <span>🏠</span>
+          <small>Home</small>
+        </button>
+        <button class="navButton" data-panel="walletPanel">
+          <span>⭐</span>
+          <small>Wallet</small>
+        </button>
+        <button class="navButton" data-panel="rewardPanel">
+          <span>🎁</span>
+          <small>Rewards</small>
+        </button>
+        <button class="navButton" data-panel="calendarPanel">
+          <span>📅</span>
+          <small>Calendar</small>
+        </button>
+        <button class="navButton" data-panel="achievementPanel">
+          <span>✨</span>
+          <small>More</small>
+        </button>
+      </nav>
+    </section>
+  </div>
+
+  <!-- Firebase SDKs (compat version so it’s simple) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <!-- ========== LOGIN SCREEN ========== -->
-  <section id="login-screen" class="screen active">
-    <div class="card cute">
-      <h1>♡ Good Girl Login ♡</h1>
-      <p class="subtitle">be a good puppy…</p>
-      <input type="email" id="email" placeholder="username / email" />
-      <input type="password" id="password" placeholder="password" />
-      <button id="login-btn" class="pink-btn">Log In</button>
-      <p id="login-error" class="error"></p>
-      <p class="tiny">Admin or Puppy account</p>
-    </div>
-  </section>
-
-  <!-- ========== PUPPY DASHBOARD ========== -->
-  <section id="puppy-dashboard" class="screen">
-    <header class="top-bar">
-      <h2>Good Girl Wallet</h2>
-      <button id="logout-btn" class="tiny-btn">Logout</button>
-    </header>
-
-    <div class="points-display">
-      <span id="points-value">0</span>
-      <span class="label">points</span>
-    </div>
-
-    <nav class="tabs">
-      <button data-tab="wallet" class="tab active">Wallet</button>
-      <button data-tab="calendar" class="tab">Calendar</button>
-      <button data-tab="rewards" class="tab">Rewards</button>
-    </nav>
-
-    <div id="tab-wallet" class="tab-content active">
-      <!-- points history can go here later -->
-      <p>You’re doing so well… keep being a good girl.</p>
-    </div>
-
-    <div id="tab-calendar" class="tab-content">
-      <div id="calendar-container"><!-- simple calendar will live here --></div>
-      <div class="legend">
-        <span class="dot period"></span> Period
-        <span class="dot spicy"></span> Spicy
-      </div>
-    </div>
-
-    <div id="tab-rewards" class="tab-content">
-      <div id="rewards-list"><!-- rendered from Firestore --></div>
-    </div>
-  </section>
-
-  <!-- ========== ADMIN DASHBOARD ========== -->
-  <section id="admin-dashboard" class="screen">
-    <header class="top-bar">
-      <h2>Admin Panel</h2>
-      <button id="logout-btn-admin" class="tiny-btn">Logout</button>
-    </header>
-
-    <div class="admin-section">
-      <h3>Give Points</h3>
-      <input type="number" id="points-to-give" value="1" min="1" />
-      <button id="give-points-btn" class="pink-btn">Give Points to Puppy</button>
-    </div>
-
-    <div class="admin-section">
-      <h3>Manage Rewards</h3>
-      <input type="text" id="new-reward-title" placeholder="Reward name (e.g. Pets)" />
-      <input type="number" id="new-reward-cost" placeholder="Cost in points" />
-      <button id="add-reward-btn" class="pink-btn">Add Reward</button>
-      <div id="admin-rewards-list"></div>
-    </div>
-
-    <div class="admin-section">
-      <h3>Linked Puppy</h3>
-      <p id="linked-status">Not linked yet</p>
-      <input type="text" id="link-uid" placeholder="Puppy UID (from her account)" />
-      <button id="link-account-btn" class="pink-btn">Link Account</button>
-    </div>
-
-    <!-- Optional: quick view of her calendar / wallet -->
-  </section>
 
   <script src="js/firebase-config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/admin.js"></script>
 </body>
 </html>
