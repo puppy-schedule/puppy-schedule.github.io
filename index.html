@@ -1,655 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-    <title>Puppy Rewards</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css">
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ffb6dc">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Good Girl Rewards</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
-
 <body>
+  <!-- ========== LOGIN SCREEN ========== -->
+  <section id="login-screen" class="screen active">
+    <div class="card cute">
+      <h1>♡ Good Girl Login ♡</h1>
+      <p class="subtitle">be a good puppy…</p>
+      <input type="email" id="email" placeholder="username / email" />
+      <input type="password" id="password" placeholder="password" />
+      <button id="login-btn" class="pink-btn">Log In</button>
+      <p id="login-error" class="error"></p>
+      <p class="tiny">Admin or Puppy account</p>
+    </div>
+  </section>
 
-<div id="app">
+  <!-- ========== PUPPY DASHBOARD ========== -->
+  <section id="puppy-dashboard" class="screen">
+    <header class="top-bar">
+      <h2>Good Girl Wallet</h2>
+      <button id="logout-btn" class="tiny-btn">Logout</button>
+    </header>
 
-    <!-- ===================================================== -->
-    <!-- Background Decorations -->
-    <!-- ===================================================== -->
-
-    <div id="background">
-
-        <div class="blob blob1"></div>
-        <div class="blob blob2"></div>
-        <div class="blob blob3"></div>
-
-        <div class="sparkles"></div>
-
+    <div class="points-display">
+      <span id="points-value">0</span>
+      <span class="label">points</span>
     </div>
 
-
-
-    <!-- ===================================================== -->
-    <!-- LOGIN -->
-    <!-- ===================================================== -->
-
-    <section id="loginScreen" class="screen active">
-
-        <div class="loginContainer">
-
-            <div class="logo">
-
-                <div class="paw">
-
-                    🐾
-
-                </div>
-
-                <h1>Puppy Rewards</h1>
-
-                <p>
-                    A cute little reward tracker
-                </p>
-
-            </div>
-
-            <div class="card">
-
-                <input
-                    id="username"
-                    type="text"
-                    placeholder="Username">
-
-                <input
-                    id="password"
-                    type="password"
-                    placeholder="Password">
-
-                <button id="loginButton">
-
-                    Login
-
-                </button>
-
-                <button
-                    id="createAccountButton"
-                    class="secondary">
-
-                    Create Account
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- ===================================================== -->
-    <!-- ACCOUNT CREATION -->
-    <!-- ===================================================== -->
-
-    <section id="registerScreen" class="screen hidden">
-
-        <div class="pageHeader">
-
-            <button class="backButton">
-
-                ←
-
-            </button>
-
-            <h2>Create Account</h2>
-
-        </div>
-
-        <div class="card">
-
-            <input
-                id="newUsername"
-                placeholder="Username">
-
-            <input
-                id="newPassword"
-                type="password"
-                placeholder="Password">
-
-            <input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm Password">
-
-            <h3>
-
-                I am...
-
-            </h3>
-
-            <div class="roleButtons">
-
-                <button id="ownerRole">
-
-                    👑
-                    <span>Owner</span>
-
-                </button>
-
-                <button id="puppyRole">
-
-                    🐾
-                    <span>Puppy</span>
-
-                </button>
-
-            </div>
-
-            <button id="finishRegister">
-
-                Continue
-
-            </button>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- ===================================================== -->
-    <!-- INVITE CODE -->
-    <!-- ===================================================== -->
-
-    <section id="inviteScreen" class="screen hidden">
-
-        <div class="pageHeader">
-
-            <button class="backButton">
-
-                ←
-
-            </button>
-
-            <h2>Link Accounts</h2>
-
-        </div>
-
-        <div class="card">
-
-            <p class="center">
-
-                If you're the Puppy,
-                generate an invite code.
-
-            </p>
-
-            <div id="inviteCode">
-
-                XXXX-XXXX
-
-            </div>
-
-            <button id="generateCode">
-
-                Generate Code
-
-            </button>
-
-            <hr>
-
-            <p class="center">
-
-                If you're the Owner,
-                enter your puppy's code.
-
-            </p>
-
-            <input
-                id="codeInput"
-                placeholder="Invite Code">
-
-            <button id="linkButton">
-
-                Link Puppy
-
-            </button>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- ===================================================== -->
-    <!-- MAIN DASHBOARD -->
-    <!-- ===================================================== -->
-
-    <section
-        id="dashboard"
-        class="screen hidden">
-
-
-
-
-        <!-- HEADER -->
-
-        <header>
-
-            <div>
-
-                <h2 id="welcomeText">
-
-                    Welcome
-
-                </h2>
-
-                <small id="relationshipName">
-
-                    Connected
-
-                </small>
-
-            </div>
-
-            <button id="settingsButton">
-
-                ⚙️
-
-            </button>
-
-        </header>
-
-
-
-
-
-        <!-- HOME PANEL -->
-
-        <main id="homePanel" class="panel active">
-
-            <div class="walletCard">
-
-                <div class="walletTitle">
-
-                    Good Girl Wallet
-
-                </div>
-
-                <div id="pointCounter">
-
-                    ⭐ 0
-
-                </div>
-
-            </div>
-
-            <div class="quickActions ownerOnly">
-
-                <button>
-
-                    +1
-
-                </button>
-
-                <button>
-
-                    +5
-
-                </button>
-
-                <button>
-
-                    +10
-
-                </button>
-
-                <button>
-
-                    Custom
-
-                </button>
-
-            </div>
-
-            <div class="praiseCard">
-
-                <h3>
-
-                    Recent Praise
-
-                </h3>
-
-                <div id="praiseFeed">
-
-                    <div class="praise">
-
-                        🩷
-                        You're such a good girl.
-
-                    </div>
-
-                    <div class="praise">
-
-                        🐾
-                        Good puppy!
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </main>
-
-
-
-
-
-        <!-- WALLET -->
-
-        <section
-            id="walletPanel"
-            class="panel">
-
-            <h2>
-
-                Wallet
-
-            </h2>
-
-            <div id="transactionList">
-
-            </div>
-
-        </section>
-
-
-
-
-
-        <!-- REWARDS -->
-
-        <section
-            id="rewardPanel"
-            class="panel">
-
-            <div class="panelHeader">
-
-                <h2>
-
-                    Rewards
-
-                </h2>
-
-                <button
-                    class="ownerOnly">
-
-                    ＋
-
-                </button>
-
-            </div>
-
-            <div id="rewardList">
-
-            </div>
-
-        </section>
-
-
-
-
-
-        <!-- CALENDAR -->
-
-        <section
-            id="calendarPanel"
-            class="panel">
-
-            <div class="panelHeader">
-
-                <h2>
-
-                    Calendar
-
-                </h2>
-
-            </div>
-
-            <div id="calendar">
-
-            </div>
-
-        </section>
-
-
-
-
-
-        <!-- ACHIEVEMENTS -->
-
-        <section
-            id="achievementPanel"
-            class="panel">
-
-            <h2>
-
-                Achievements
-
-            </h2>
-
-        </section>
-
-
-
-
-
-        <!-- SETTINGS -->
-
-        <section
-            id="settingsPanel"
-            class="panel">
-
-            <button>
-
-                Edit Profile
-
-            </button>
-
-            <button>
-
-                Theme
-
-            </button>
-
-            <button>
-
-                Sounds
-
-            </button>
-
-            <button>
-
-                Logout
-
-            </button>
-
-        </section>
-
-
-
-
-
-        <!-- ADMIN DRAWER -->
-
-        <aside
-            id="adminDrawer"
-            class="ownerOnly">
-
-            <h3>
-
-                Owner Tools
-
-            </h3>
-
-            <button>
-
-                Add Reward
-
-            </button>
-
-            <button>
-
-                Edit Rewards
-
-            </button>
-
-            <button>
-
-                Statistics
-
-            </button>
-
-            <button>
-
-                Relationship
-
-            </button>
-
-            <button>
-
-                Calendar Manager
-
-            </button>
-
-        </aside>
-
-
-
-
-
-        <!-- BOTTOM NAV -->
-
-        <nav id="bottomNav">
-
-            <button
-                class="navButton active"
-                data-panel="homePanel">
-
-                <span>
-
-                    🏠
-
-                </span>
-
-                <small>
-
-                    Home
-
-                </small>
-
-            </button>
-
-            <button
-                class="navButton"
-                data-panel="walletPanel">
-
-                <span>
-
-                    ⭐
-
-                </span>
-
-                <small>
-
-                    Wallet
-
-                </small>
-
-            </button>
-
-            <button
-                class="navButton"
-                data-panel="rewardPanel">
-
-                <span>
-
-                    🎁
-
-                </span>
-
-                <small>
-
-                    Rewards
-
-                </small>
-
-            </button>
-
-            <button
-                class="navButton"
-                data-panel="calendarPanel">
-
-                <span>
-
-                    📅
-
-                </span>
-
-                <small>
-
-                    Calendar
-
-                </small>
-
-            </button>
-
-            <button
-                class="navButton"
-                data-panel="achievementPanel">
-
-                <span>
-
-                    🏆
-
-                </span>
-
-                <small>
-
-                    More
-
-                </small>
-
-            </button>
-
-        </nav>
-
-    </section>
-
-</div>
-
-<script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/auth.js"></script>
-<script type="module" src="js/router.js"></script>
-<script type="module" src="js/app.js"></script>
-
+    <nav class="tabs">
+      <button data-tab="wallet" class="tab active">Wallet</button>
+      <button data-tab="calendar" class="tab">Calendar</button>
+      <button data-tab="rewards" class="tab">Rewards</button>
+    </nav>
+
+    <div id="tab-wallet" class="tab-content active">
+      <!-- points history can go here later -->
+      <p>You’re doing so well… keep being a good girl.</p>
+    </div>
+
+    <div id="tab-calendar" class="tab-content">
+      <div id="calendar-container"><!-- simple calendar will live here --></div>
+      <div class="legend">
+        <span class="dot period"></span> Period
+        <span class="dot spicy"></span> Spicy
+      </div>
+    </div>
+
+    <div id="tab-rewards" class="tab-content">
+      <div id="rewards-list"><!-- rendered from Firestore --></div>
+    </div>
+  </section>
+
+  <!-- ========== ADMIN DASHBOARD ========== -->
+  <section id="admin-dashboard" class="screen">
+    <header class="top-bar">
+      <h2>Admin Panel</h2>
+      <button id="logout-btn-admin" class="tiny-btn">Logout</button>
+    </header>
+
+    <div class="admin-section">
+      <h3>Give Points</h3>
+      <input type="number" id="points-to-give" value="1" min="1" />
+      <button id="give-points-btn" class="pink-btn">Give Points to Puppy</button>
+    </div>
+
+    <div class="admin-section">
+      <h3>Manage Rewards</h3>
+      <input type="text" id="new-reward-title" placeholder="Reward name (e.g. Pets)" />
+      <input type="number" id="new-reward-cost" placeholder="Cost in points" />
+      <button id="add-reward-btn" class="pink-btn">Add Reward</button>
+      <div id="admin-rewards-list"></div>
+    </div>
+
+    <div class="admin-section">
+      <h3>Linked Puppy</h3>
+      <p id="linked-status">Not linked yet</p>
+      <input type="text" id="link-uid" placeholder="Puppy UID (from her account)" />
+      <button id="link-account-btn" class="pink-btn">Link Account</button>
+    </div>
+
+    <!-- Optional: quick view of her calendar / wallet -->
+  </section>
+
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
 </body>
-
 </html>
