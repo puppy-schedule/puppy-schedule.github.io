@@ -22,32 +22,7 @@ function switchPanel(panelId) {
 }
 
 // ─────────────────────────────────────────────
-// Real-time points
-// ─────────────────────────────────────────────
-let pointsUnsub = null;
-
-function startPointsListener() {
-  if (pointsUnsub) pointsUnsub();
-
-  const uid = getPointsUid();
-  if (!uid) return;
-
-  pointsUnsub = db.collection('users').doc(uid).onSnapshot(snap => {
-    if (!snap.exists) return;
-    const points = snap.data().points || 0;
-    const el = document.getElementById('pointCounter');
-    if (el) el.textContent = `⭐ ${points}`;
-  });
-}
-
-function getPointsUid() {
-  if (!currentUserData) return null;
-  if (currentUserData.role === 'owner') return currentUserData.linkedUid || null;
-  return auth.currentUser?.uid || null;
-}
-
-// ─────────────────────────────────────────────
-// Owner: quick give points
+// Owner: give points
 // ─────────────────────────────────────────────
 document.querySelectorAll('.quickActions button[data-points]').forEach(btn => {
   btn.addEventListener('click', () => givePoints(parseInt(btn.dataset.points, 10)));
@@ -88,14 +63,12 @@ function addPraise(text) {
 }
 
 // ─────────────────────────────────────────────
-// REWARDS (polished)
+// REWARDS
 // ─────────────────────────────────────────────
 document.getElementById('addRewardBtn')?.addEventListener('click', openAddRewardModal);
 
 function openAddRewardModal() {
   if (!currentUserData || currentUserData.role !== 'owner') return;
-
-  // Remove existing modal if any
   document.getElementById('rewardModal')?.remove();
 
   const modal = document.createElement('div');
@@ -181,7 +154,6 @@ async function loadRewards() {
       list.appendChild(card);
     });
 
-    // Delete (Owner)
     list.querySelectorAll('.delete-reward').forEach(btn => {
       btn.onclick = async () => {
         if (!confirm('Remove this reward?')) return;
@@ -190,7 +162,6 @@ async function loadRewards() {
       };
     });
 
-    // Redeem (Puppy)
     list.querySelectorAll('.redeem-btn').forEach(btn => {
       btn.onclick = async () => {
         const cost = parseInt(btn.dataset.cost, 10);
@@ -219,7 +190,7 @@ async function loadRewards() {
 }
 
 // ─────────────────────────────────────────────
-// CALENDAR (polished)
+// CALENDAR
 // ─────────────────────────────────────────────
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
@@ -237,7 +208,6 @@ async function renderCalendar() {
   const monthNames = ['January','February','March','April','May','June',
                       'July','August','September','October','November','December'];
 
-  // Load events for the visible month
   const start = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
   const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
   const end = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
@@ -253,10 +223,6 @@ async function renderCalendar() {
     if (!eventsByDate[d.date]) eventsByDate[d.date] = [];
     eventsByDate[d.date].push({ id: doc.id, ...d });
   });
-
-  // Build period ranges for nicer highlighting
-  const periodDays = new Set();
-  // Simple version: mark individual days for now (we can enhance range later)
 
   cal.innerHTML = `
     <div class="cal-header">
@@ -351,7 +317,6 @@ async function markDay(type) {
   if (!uid) return;
 
   try {
-    // Prevent exact duplicate of same type on same day
     const existing = await db.collection('calendar').doc(uid).collection('events')
       .where('date', '==', date)
       .where('type', '==', type)
@@ -359,7 +324,6 @@ async function markDay(type) {
       .get();
 
     if (!existing.empty) {
-      // Toggle off
       await existing.docs[0].ref.delete();
     } else {
       await db.collection('calendar').doc(uid).collection('events').add({
@@ -377,7 +341,7 @@ async function markDay(type) {
 }
 
 // ─────────────────────────────────────────────
-// MORE PANEL (polished)
+// MORE PANEL
 // ─────────────────────────────────────────────
 function renderMorePanel() {
   const panel = document.getElementById('achievementPanel');
@@ -405,8 +369,7 @@ function renderMorePanel() {
 }
 
 function showAchievements() {
-  const content = document.getElementById('moreContent');
-  content.innerHTML = `
+  document.getElementById('moreContent').innerHTML = `
     <div class="card" style="gap:10px">
       <h3 style="color:var(--hot);margin-bottom:4px">Achievements</h3>
       <div class="ach">🔒 First Points</div>
@@ -431,8 +394,7 @@ function showStats() {
 }
 
 function showTheme() {
-  const content = document.getElementById('moreContent');
-  content.innerHTML = `
+  document.getElementById('moreContent').innerHTML = `
     <div class="card">
       <h3 style="color:var(--hot)">Theme</h3>
       <p style="color:var(--text-light);margin-bottom:12px">More pastel themes coming soon</p>
