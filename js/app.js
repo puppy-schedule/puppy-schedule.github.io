@@ -68,7 +68,11 @@ function addPraise(text) {
 document.getElementById('addRewardBtn')?.addEventListener('click', openAddRewardModal);
 
 function openAddRewardModal() {
-  if (!currentUserData || currentUserData.role !== 'owner') return;
+  if (!currentUserData || currentUserData.role !== 'owner') {
+    alert('Only the Owner can add rewards');
+    return;
+  }
+
   document.getElementById('rewardModal')?.remove();
 
   const modal = document.createElement('div');
@@ -77,28 +81,44 @@ function openAddRewardModal() {
     <div class="modal-backdrop">
       <div class="modal-card">
         <h3>Add Reward 🎁</h3>
-        <input id="modalTitle" placeholder="Reward name (e.g. Pets)" maxlength="40">
-        <input id="modalCost" type="number" placeholder="Cost in points" min="1">
-        <input id="modalDesc" placeholder="Short description (optional)" maxlength="80">
+        <input id="modalTitle" placeholder="Reward name (e.g. Pets)" maxlength="40" autocomplete="off">
+        <input id="modalCost" type="number" placeholder="Cost in points" min="1" inputmode="numeric">
+        <input id="modalDesc" placeholder="Short description (optional)" maxlength="80" autocomplete="off">
         <div class="modal-actions">
-          <button id="modalCancel" class="secondary">Cancel</button>
-          <button id="modalSave">Save ♡</button>
+          <button type="button" id="modalCancel" class="secondary">Cancel</button>
+          <button type="button" id="modalSave">Save ♡</button>
         </div>
+        <p id="modalError" class="error" style="margin-top:8px"></p>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
 
+  setTimeout(() => document.getElementById('modalTitle')?.focus(), 80);
+
   document.getElementById('modalCancel').onclick = () => modal.remove();
+
   document.getElementById('modalSave').onclick = async () => {
     const title = document.getElementById('modalTitle').value.trim();
     const cost = parseInt(document.getElementById('modalCost').value, 10);
     const description = document.getElementById('modalDesc').value.trim();
+    const errorEl = document.getElementById('modalError');
+    errorEl.textContent = '';
 
-    if (!title) return alert('Give it a name');
-    if (isNaN(cost) || cost < 1) return alert('Enter a valid point cost');
+    if (!title) {
+      errorEl.textContent = 'Please give it a name';
+      return;
+    }
+    if (isNaN(cost) || cost < 1) {
+      errorEl.textContent = 'Enter a valid point cost (1 or more)';
+      return;
+    }
 
+    const saveBtn = document.getElementById('modalSave');
     try {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
       await db.collection('rewards').add({
         title,
         cost,
@@ -106,12 +126,19 @@ function openAddRewardModal() {
         active: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
+
       modal.remove();
       loadRewards();
       addPraise(`🎁 New reward added: ${title}`);
     } catch (err) {
-      console.error(err);
-      alert('Could not save reward');
+      console.error('Add reward error:', err);
+      errorEl.textContent = err.message || 'Could not save reward';
+      if (err.message && err.message.includes('index')) {
+        errorEl.textContent = 'Database index needed – check console for a create-index link';
+      }
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save ♡';
     }
   };
 }
@@ -185,7 +212,7 @@ async function loadRewards() {
     });
   } catch (err) {
     console.error(err);
-    list.innerHTML = `<p class="empty">Could not load rewards</p>`;
+    list.innerHTML = `<p class="empty">Could not load rewards<br><small>${err.message}</small></p>`;
   }
 }
 
@@ -230,15 +257,18 @@ async function renderCalendar() {
       <h3>${monthNames[currentMonth]} ${currentYear}</h3>
       <button class="cal-nav" id="nextMonth">›</button>
     </div>
+
     <div class="cal-grid" id="calGrid"></div>
+
     <div class="cal-actions">
       <button class="cal-btn" id="markPeriodStart">Period Start</button>
       <button class="cal-btn" id="markPeriodEnd">Period End</button>
-      <button class="cal-btn spicy" id="markSpicy">Spicy 🔥</button>
+      <button class="cal-btn intimate" id="markIntimate">Intimate 🔥</button>
     </div>
+
     <div class="legend">
       <span><i class="dot period"></i> Period</span>
-      <span><i class="dot spicy"></i> Spicy</span>
+      <span><i class="dot intimate"></i> Intimate</span>
     </div>
   `;
 
@@ -268,7 +298,7 @@ async function renderCalendar() {
 
     let extraClass = '';
     if (evts.some(e => e.type.startsWith('period'))) extraClass += ' has-period';
-    if (evts.some(e => e.type === 'spicy')) extraClass += ' has-spicy';
+    if (evts.some(e => e.type === 'intimate')) extraClass += ' has-intimate';
     if (dateStr === todayStr) extraClass += ' is-today';
 
     dayEl.className = `cal-day${extraClass}`;
@@ -296,7 +326,7 @@ async function renderCalendar() {
 
   document.getElementById('markPeriodStart').onclick = () => markDay('period-start');
   document.getElementById('markPeriodEnd').onclick = () => markDay('period-end');
-  document.getElementById('markSpicy').onclick = () => markDay('spicy');
+  document.getElementById('markIntimate').onclick = () => markDay('intimate');
 }
 
 function getCalendarUid() {
@@ -376,7 +406,7 @@ function showAchievements() {
       <div class="ach">🔒 Good Girl (50 pts)</div>
       <div class="ach">🔒 Spoiled (200 pts)</div>
       <div class="ach">🔒 Period Tracker</div>
-      <div class="ach">🔒 Spicy Day</div>
+      <div class="ach">🔒 Intimate Day</div>
       <p style="font-size:0.85rem;color:var(--text-light);margin-top:6px">
         Real tracking coming in the next update 🐾
       </p>
