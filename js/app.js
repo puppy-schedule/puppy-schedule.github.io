@@ -81,60 +81,63 @@ function openAddRewardModal() {
     <div class="modal-backdrop">
       <div class="modal-card">
         <h3>Add Reward 🎁</h3>
-        <input id="modalTitle" placeholder="Reward name (e.g. Pets)" maxlength="40" autocomplete="off">
-        <input id="modalCost" type="number" placeholder="Cost in points" min="1" inputmode="numeric">
-        <input id="modalDesc" placeholder="Short description (optional)" maxlength="80" autocomplete="off">
+        <input id="modalTitle" placeholder="Reward name (e.g. Pets)" maxlength="40">
+        <input id="modalCost" type="number" placeholder="Cost in points" min="1">
+        <input id="modalDesc" placeholder="Short description (optional)" maxlength="80">
         <div class="modal-actions">
           <button type="button" id="modalCancel" class="secondary">Cancel</button>
           <button type="button" id="modalSave">Save ♡</button>
         </div>
-        <p id="modalError" class="error" style="margin-top:8px"></p>
+        <p id="modalError" class="error"></p>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
 
-  setTimeout(() => document.getElementById('modalTitle')?.focus(), 80);
+  document.getElementById('modalTitle').focus();
 
   document.getElementById('modalCancel').onclick = () => modal.remove();
 
   document.getElementById('modalSave').onclick = async () => {
     const title = document.getElementById('modalTitle').value.trim();
-    const cost = parseInt(document.getElementById('modalCost').value, 10);
+    const costVal = document.getElementById('modalCost').value;
+    const cost = parseInt(costVal, 10);
     const description = document.getElementById('modalDesc').value.trim();
     const errorEl = document.getElementById('modalError');
     errorEl.textContent = '';
 
     if (!title) {
-      errorEl.textContent = 'Please give it a name';
+      errorEl.textContent = 'Please enter a name';
       return;
     }
-    if (isNaN(cost) || cost < 1) {
-      errorEl.textContent = 'Enter a valid point cost (1 or more)';
+    if (!costVal || isNaN(cost) || cost < 1) {
+      errorEl.textContent = 'Enter a valid cost (1 or higher)';
       return;
     }
 
     const saveBtn = document.getElementById('modalSave');
-    try {
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Saving...';
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
 
+    try {
       await db.collection('rewards').add({
-        title,
-        cost,
-        description,
+        title: title,
+        cost: cost,
+        description: description,
         active: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
       modal.remove();
-      loadRewards();
+      await loadRewards();
       addPraise(`🎁 New reward added: ${title}`);
     } catch (err) {
-      console.error('Add reward error:', err);
-      errorEl.textContent = err.message || 'Could not save reward';
-      if (err.message && err.message.includes('index')) {
-        errorEl.textContent = 'Database index needed – check console for a create-index link';
+      console.error(err);
+      errorEl.textContent = err.message || 'Failed to save';
+
+      // Helpful message for the index problem
+      if (err.code === 'failed-precondition' || (err.message && err.message.includes('index'))) {
+        errorEl.innerHTML = 'Missing database index.<br>Check the browser console and click the link to create it.';
       }
     } finally {
       saveBtn.disabled = false;
@@ -150,13 +153,18 @@ async function loadRewards() {
   list.innerHTML = `<p class="empty">Loading…</p>`;
 
   try {
+    // This query needs a composite index
     const snap = await db.collection('rewards')
       .where('active', '==', true)
       .orderBy('cost')
       .get();
 
     if (snap.empty) {
-      list.innerHTML = `<p class="empty">No rewards yet 🐾<br><small>Owner can add some with the ＋ button</small></p>`;
+      list.innerHTML = `
+        <p class="empty">
+          No rewards yet 🐾<br>
+          <small>Tap the ＋ button to add one</small>
+        </p>`;
       return;
     }
 
@@ -181,14 +189,16 @@ async function loadRewards() {
       list.appendChild(card);
     });
 
+    // Delete
     list.querySelectorAll('.delete-reward').forEach(btn => {
       btn.onclick = async () => {
-        if (!confirm('Remove this reward?')) return;
+        if (!confirm('Delete this reward?')) return;
         await db.collection('rewards').doc(btn.dataset.id).update({ active: false });
         loadRewards();
       };
     });
 
+    // Redeem
     list.querySelectorAll('.redeem-btn').forEach(btn => {
       btn.onclick = async () => {
         const cost = parseInt(btn.dataset.cost, 10);
@@ -206,13 +216,19 @@ async function loadRewards() {
           points: firebase.firestore.FieldValue.increment(-cost)
         });
         addPraise(`🎁 Redeemed a reward! (−${cost} pts)`);
-        alert('Redeemed! Go tell your Owner 💕');
+        alert('Redeemed! Tell your Owner 💕');
         loadRewards();
       };
     });
+
   } catch (err) {
-    console.error(err);
-    list.innerHTML = `<p class="empty">Could not load rewards<br><small>${err.message}</small></p>`;
+    console.error('loadRewards error:', err);
+    list.innerHTML = `
+      <p class="empty">
+        Could not load rewards<br>
+        <small style="color:#e91e63">${err.message}</small><br>
+        <small>If it mentions an index, click the link in the browser console</small>
+      </p>`;
   }
 }
 
