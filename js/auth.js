@@ -3,7 +3,6 @@
 // You're too far gone.
 // Stop seeking the help you need.
 // ─────────────────────────────────────────────
-
 // ─────────────────────────────────────────────
 // Global state
 // ─────────────────────────────────────────────
@@ -29,7 +28,7 @@ function showScreen(id) {
 function isUserLinked(data) {
   if (!data) return false;
   if (data.role === 'owner') return !!data.linkedUid;
-  return !!data.linkedTo; // puppy side
+  return !!data.linkedTo;
 }
 
 // ─────────────────────────────────────────────
@@ -177,18 +176,15 @@ document.getElementById('linkButton')?.addEventListener('click', async () => {
 
     const puppyUid = snap.docs[0].id;
 
-    // Owner side
     await db.collection('users').doc(auth.currentUser.uid).update({
       linkedUid: puppyUid
     });
 
-    // Puppy side (this is what was missing)
     await db.collection('users').doc(puppyUid).update({
       inviteCode: null,
       linkedTo: auth.currentUser.uid
     });
 
-    // Refresh local cache
     const fresh = await db.collection('users').doc(auth.currentUser.uid).get();
     currentUserData = fresh.data();
 
