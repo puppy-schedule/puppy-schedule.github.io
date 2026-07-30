@@ -1,4 +1,10 @@
 // ─────────────────────────────────────────────
+// You should NOT be here.
+// You're too far gone.
+// Stop seeking the help you need.
+// ─────────────────────────────────────────────
+
+// ─────────────────────────────────────────────
 // Global state
 // ─────────────────────────────────────────────
 let currentUserData = null;
@@ -18,6 +24,12 @@ function showScreen(id) {
     el.classList.remove('hidden');
     el.classList.add('active');
   }
+}
+
+function isUserLinked(data) {
+  if (!data) return false;
+  if (data.role === 'owner') return !!data.linkedUid;
+  return !!data.linkedTo; // puppy side
 }
 
 // ─────────────────────────────────────────────
@@ -98,6 +110,7 @@ document.getElementById('finishRegister')?.addEventListener('click', async () =>
       displayName: email.split('@')[0],
       points: 0,
       linkedUid: null,
+      linkedTo: null,
       inviteCode: null,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -117,7 +130,7 @@ document.getElementById('backFromRegister')?.addEventListener('click', () => {
 });
 
 document.getElementById('backFromInvite')?.addEventListener('click', () => {
-  if (auth.currentUser && currentUserData?.linkedUid) {
+  if (auth.currentUser && currentUserData && isUserLinked(currentUserData)) {
     showScreen('dashboard');
   } else if (auth.currentUser) {
     showScreen('inviteScreen');
@@ -164,13 +177,15 @@ document.getElementById('linkButton')?.addEventListener('click', async () => {
 
     const puppyUid = snap.docs[0].id;
 
-    // Link both sides
+    // Owner side
     await db.collection('users').doc(auth.currentUser.uid).update({
       linkedUid: puppyUid
     });
 
+    // Puppy side (this is what was missing)
     await db.collection('users').doc(puppyUid).update({
-      inviteCode: null
+      inviteCode: null,
+      linkedTo: auth.currentUser.uid
     });
 
     // Refresh local cache
@@ -222,6 +237,7 @@ auth.onAuthStateChanged(async (user) => {
         displayName: user.email ? user.email.split('@')[0] : 'puppy',
         points: 0,
         linkedUid: null,
+        linkedTo: null,
         inviteCode: null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -236,10 +252,10 @@ auth.onAuthStateChanged(async (user) => {
       document.body.classList.remove('is-owner');
     }
 
-    if (!currentUserData.linkedUid) {
-      showScreen('inviteScreen');
-    } else {
+    if (isUserLinked(currentUserData)) {
       showScreen('dashboard');
+    } else {
+      showScreen('inviteScreen');
     }
 
     await loadUserUI();
@@ -250,7 +266,7 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // ─────────────────────────────────────────────
-// Load UI after login / link
+// Load UI
 // ─────────────────────────────────────────────
 async function loadUserUI() {
   if (!currentUserData || !auth.currentUser) return;
@@ -266,7 +282,7 @@ async function loadUserUI() {
   }
 
   if (rel) {
-    rel.textContent = currentUserData.linkedUid ? '♡ Linked' : 'Not linked yet';
+    rel.textContent = isUserLinked(currentUserData) ? '♡ Linked' : 'Not linked yet';
   }
 
   startPointsListener();
@@ -299,7 +315,7 @@ function getPointsUid() {
 }
 
 // ─────────────────────────────────────────────
-// Logout + Settings shortcuts
+// Logout + Settings
 // ─────────────────────────────────────────────
 document.getElementById('logoutBtn')?.addEventListener('click', () => auth.signOut());
 document.getElementById('settingsButton')?.addEventListener('click', () => {
