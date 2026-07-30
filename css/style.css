@@ -1,474 +1,866 @@
-// ─────────────────────────────────────────────
-// Bottom navigation
-// ─────────────────────────────────────────────
-document.querySelectorAll('.navButton').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const panelId = btn.dataset.panel;
-    switchPanel(panelId);
-
-    document.querySelectorAll('.navButton').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    if (panelId === 'rewardPanel') loadRewards();
-    if (panelId === 'calendarPanel') renderCalendar();
-    if (panelId === 'achievementPanel') renderMorePanel();
-  });
-});
-
-function switchPanel(panelId) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const panel = document.getElementById(panelId);
-  if (panel) panel.classList.add('active');
+/*======================================================
+  Puppy Rewards – Polished Cute Edition
+======================================================*/
+:root {
+  --pink: #ffb6dc;
+  --pink-light: #ffd9ec;
+  --pink-dark: #f27cb4;
+  --hot: #ff4d94;
+  --white: #ffffff;
+  --cream: #fff7fb;
+  --text: #5a4b57;
+  --text-light: #9e8a98;
+  --card: #ffffff;
+  --shadow: 0 12px 35px rgba(242, 124, 180, 0.18);
+  --radius: 24px;
+  --transition: 0.25s ease;
 }
 
-// ─────────────────────────────────────────────
-// Real-time points
-// ─────────────────────────────────────────────
-let pointsUnsub = null;
-
-function startPointsListener() {
-  if (pointsUnsub) pointsUnsub();
-
-  const uid = getPointsUid();
-  if (!uid) return;
-
-  pointsUnsub = db.collection('users').doc(uid).onSnapshot(snap => {
-    if (!snap.exists) return;
-    const points = snap.data().points || 0;
-    const el = document.getElementById('pointCounter');
-    if (el) el.textContent = `⭐ ${points}`;
-  });
+/*======================================================
+  Reset + Base
+======================================================*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
-function getPointsUid() {
-  if (!currentUserData) return null;
-  if (currentUserData.role === 'owner') return currentUserData.linkedUid || null;
-  return auth.currentUser?.uid || null;
+html {
+  height: 100%;
+  height: -webkit-fill-available;
 }
 
-// ─────────────────────────────────────────────
-// Owner: quick give points
-// ─────────────────────────────────────────────
-document.querySelectorAll('.quickActions button[data-points]').forEach(btn => {
-  btn.addEventListener('click', () => givePoints(parseInt(btn.dataset.points, 10)));
-});
+body {
+  min-height: 100%;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  margin: 0;
+  font-family: "Quicksand", system-ui, sans-serif;
+  color: var(--text);
+  background: linear-gradient(165deg, #ffeaf5 0%, #ffd7eb 50%, #fce4f6 100%);
+  overflow: hidden;
+}
 
-document.getElementById('customPointsBtn')?.addEventListener('click', async () => {
-  const amount = prompt('How many points?');
-  if (!amount) return;
-  const num = parseInt(amount, 10);
-  if (isNaN(num) || num === 0) return alert('Enter a valid number');
-  await givePoints(num);
-});
+/*======================================================
+  App container + Safe areas
+======================================================*/
+#app {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100%;
+  height: 100dvh;
+  height: -webkit-fill-available;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  box-sizing: border-box;
+}
 
-async function givePoints(amount) {
-  if (!currentUserData || currentUserData.role !== 'owner') return;
-  const puppyUid = currentUserData.linkedUid;
-  if (!puppyUid) return alert('Link a puppy first 🐾');
+/*======================================================
+  Background decorations
+======================================================*/
+#background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
 
-  try {
-    await db.collection('users').doc(puppyUid).update({
-      points: firebase.firestore.FieldValue.increment(amount)
-    });
-    addPraise(amount > 0 ? `🩷 +${amount} points! Good girl~` : `Took ${Math.abs(amount)} points`);
-  } catch (err) {
-    console.error(err);
-    alert('Could not update points');
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.28;
+  filter: blur(60px);
+}
+
+.blob1 {
+  width: 240px;
+  height: 240px;
+  background: #ffc5e5;
+  top: -70px;
+  left: -50px;
+}
+
+.blob2 {
+  width: 280px;
+  height: 280px;
+  background: #fff0b8;
+  bottom: -140px;
+  right: -100px;
+}
+
+.blob3 {
+  width: 190px;
+  height: 190px;
+  background: #ffd4f6;
+  top: 42%;
+  left: 62%;
+}
+
+.paw-prints {
+  position: absolute;
+  top: 18%;
+  left: -10%;
+  width: 120%;
+  font-size: 1.6rem;
+  opacity: 0.13;
+  letter-spacing: 1.8rem;
+  transform: rotate(-9deg);
+  user-select: none;
+}
+
+/*======================================================
+  Screens
+======================================================*/
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  opacity: 1;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+}
+
+/* Login – centered */
+#loginScreen {
+  padding-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+#loginScreen .loginContainer {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+}
+
+/* Dashboard needs room for bottom nav */
+#dashboard {
+  padding-bottom: 0;
+}
+
+#dashboard .panel {
+  padding-bottom: 100px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/*======================================================
+  Logo / Login
+======================================================*/
+.logo {
+  text-align: center;
+}
+
+.logo .paw {
+  font-size: 4.2rem;
+  filter: drop-shadow(0 4px 8px rgba(242, 124, 180, 0.3));
+}
+
+.logo h1 {
+  font-family: "Fredoka", sans-serif;
+  font-size: 2.6rem;
+  font-weight: 600;
+  color: var(--hot);
+  margin-top: 6px;
+  letter-spacing: -0.5px;
+}
+
+.logo p {
+  margin-top: 8px;
+  color: var(--text-light);
+  font-size: 1.05rem;
+}
+
+/*======================================================
+  Cards
+======================================================*/
+.card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 2px solid rgba(255, 182, 220, 0.6);
+}
+
+/*======================================================
+  Inputs
+======================================================*/
+input {
+  border: none;
+  background: #fff5fa;
+  border-radius: 18px;
+  padding: 17px 18px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+  transition: 0.2s;
+  width: 100%;
+}
+
+input:focus {
+  background: white;
+  box-shadow: 0 0 0 4px rgba(255, 182, 220, 0.35);
+}
+
+/*======================================================
+  Buttons
+======================================================*/
+button {
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: "Quicksand", sans-serif;
+  border-radius: 18px;
+  padding: 17px;
+  transition: var(--transition);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+#loginButton,
+#finishRegister,
+#generateCode,
+#linkButton,
+#modalSave {
+  background: linear-gradient(135deg, #ff8ec4, #ff4d94);
+  color: white;
+  box-shadow: 0 6px 18px rgba(255, 77, 148, 0.35);
+}
+
+.secondary {
+  background: white;
+  border: 2.5px solid var(--pink);
+  color: var(--pink-dark);
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  padding: 0;
+}
+
+/*======================================================
+  Role selection
+======================================================*/
+.role-title {
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.roleButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.role-btn {
+  background: #fff5fa;
+  border: 2.5px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 10px;
+  color: var(--text);
+}
+
+.role-btn .emoji {
+  font-size: 1.8rem;
+}
+
+.role-btn.selected {
+  border-color: var(--pink-dark);
+  background: #ffe0f0;
+  color: var(--hot);
+}
+
+/*======================================================
+  Invite code
+======================================================*/
+.invite-code {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 3px;
+  text-align: center;
+  background: #fff0f7;
+  padding: 16px;
+  border-radius: 18px;
+  color: var(--hot);
+  border: 2px dashed var(--pink);
+}
+
+.divider {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #f0d0e0;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+/*======================================================
+  Header
+======================================================*/
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+header h2 {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.5rem;
+  color: var(--hot);
+}
+
+header small {
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+/*======================================================
+  Wallet card
+======================================================*/
+.walletCard {
+  background: white;
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  padding: 28px 20px;
+  text-align: center;
+  border: 2px solid rgba(255, 182, 220, 0.5);
+}
+
+.walletTitle {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  letter-spacing: 0.5px;
+}
+
+#pointCounter {
+  font-family: "Fredoka", sans-serif;
+  font-size: 3.4rem;
+  margin-top: 6px;
+  color: var(--hot);
+  line-height: 1.1;
+}
+
+.wallet-sub {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+/*======================================================
+  Quick actions (Owner)
+======================================================*/
+.quickActions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.quickActions button {
+  background: #ffd2e9;
+  color: var(--pink-dark);
+  padding: 14px 6px;
+  font-size: 0.95rem;
+  border-radius: 16px;
+}
+
+/*======================================================
+  Praise feed
+======================================================*/
+.praiseCard {
+  margin-top: 20px;
+  background: white;
+  border-radius: 26px;
+  padding: 18px 18px 8px;
+  box-shadow: var(--shadow);
+  border: 2px solid rgba(255, 182, 220, 0.4);
+}
+
+.praiseCard h3 {
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+
+.praise {
+  margin-top: 10px;
+  background: #fff6fb;
+  border-radius: 16px;
+  padding: 13px 16px;
+  font-size: 0.95rem;
+}
+
+/*======================================================
+  Panels
+======================================================*/
+.panel {
+  display: none;
+  animation: fadeUp 0.3s ease;
+}
+
+.panel.active {
+  display: block;
+}
+
+.panel-title {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.4rem;
+  color: var(--hot);
+  margin-bottom: 14px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/*======================================================
+  Bottom Navigation
+======================================================*/
+#bottomNav {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  height: 68px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(242, 124, 180, 0.2);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border: 2px solid rgba(255, 182, 220, 0.5);
+  z-index: 50;
+}
+
+.navButton {
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  color: var(--text-light);
+  font-size: 0.7rem;
+  gap: 3px;
+  border-radius: 16px;
+  min-width: 56px;
+}
+
+.navButton span {
+  font-size: 1.35rem;
+  transition: transform 0.2s;
+}
+
+.navButton.active {
+  color: var(--hot);
+}
+
+.navButton.active span {
+  transform: scale(1.15);
+}
+
+/*======================================================
+  Owner only
+======================================================*/
+.ownerOnly {
+  display: none !important;
+}
+
+body.is-owner .ownerOnly {
+  display: grid !important;
+}
+
+body.is-owner .quickActions.ownerOnly {
+  display: grid !important;
+}
+
+body.is-owner #addRewardBtn.ownerOnly {
+  display: flex !important;
+}
+
+/*======================================================
+  Reward cards
+======================================================*/
+.reward-card {
+  background: #fff5fa;
+  border-radius: 18px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid #ffd0e8;
+  gap: 12px;
+}
+
+.reward-info strong {
+  font-size: 1.05rem;
+}
+
+.reward-desc {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.cost-badge {
+  background: linear-gradient(135deg, #ff8ec4, #ff4d94);
+  color: white;
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.delete-reward {
+  background: #ffe0e0;
+  color: #e91e63;
+  border: none;
+  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.redeem-btn {
+  background: #ffd2e9;
+  color: var(--pink-dark);
+  border: none;
+  border-radius: 14px;
+  padding: 7px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/*======================================================
+  Calendar
+======================================================*/
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.cal-header h3 {
+  font-family: "Fredoka", sans-serif;
+  color: var(--hot);
+  font-size: 1.3rem;
+}
+
+.cal-nav {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--pink);
+  color: var(--hot);
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.cal-day-name {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  padding: 4px 0;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  border: 2px solid transparent;
+  position: relative;
+  transition: transform 0.15s;
+}
+
+.cal-day.empty {
+  background: transparent;
+}
+
+.cal-day.selected {
+  border-color: var(--hot);
+  background: #ffe0f0;
+  transform: scale(1.06);
+}
+
+.cal-day.is-today {
+  box-shadow: inset 0 0 0 2px var(--hot);
+}
+
+.cal-day.has-period {
+  background: #ffd6e9;
+}
+
+.cal-day.has-spicy::after {
+  content: "🔥";
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 0.6rem;
+}
+
+.cal-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.cal-btn {
+  flex: 1;
+  min-width: 100px;
+  background: #ffd2e9;
+  color: var(--pink-dark);
+  padding: 12px 8px;
+  font-size: 0.9rem;
+  border-radius: 14px;
+}
+
+.cal-btn.spicy {
+  background: #ffb6c1;
+}
+
+.legend {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.dot.period { background: #ff6b9d; }
+.dot.spicy { background: #ff3e7f; }
+
+/*======================================================
+  More panel
+======================================================*/
+.more-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.more-btn {
+  background: white;
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  border: 2px solid rgba(255, 182, 220, 0.4);
+}
+
+.ach {
+  background: #fff6fb;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+}
+
+.theme-btn {
+  background: #ffd2e9;
+  color: var(--pink-dark);
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+/*======================================================
+  Modal (Add Reward)
+======================================================*/
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(90, 40, 70, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 28px;
+  padding: 24px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 3px solid #ffb6dc;
+}
+
+.modal-card h3 {
+  font-family: "Fredoka", sans-serif;
+  color: var(--hot);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.modal-actions button {
+  flex: 1;
+}
+
+/*======================================================
+  Utilities
+======================================================*/
+.center { text-align: center; }
+.soft { color: var(--text-light); font-size: 0.95rem; }
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.pageHeader h2 {
+  font-family: "Fredoka", sans-serif;
+  color: var(--hot);
+}
+
+.backButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow);
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.error {
+  color: #e91e63;
+  font-size: 0.9rem;
+  text-align: center;
+  min-height: 1.2em;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-light);
+  padding: 30px 10px;
+  line-height: 1.5;
+}
+
+.empty small {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/*======================================================
+  Animations
+======================================================*/
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
-}
-
-function addPraise(text) {
-  const feed = document.getElementById('praiseFeed');
-  if (!feed) return;
-  const div = document.createElement('div');
-  div.className = 'praise';
-  div.textContent = text;
-  feed.prepend(div);
-  while (feed.children.length > 6) feed.removeChild(feed.lastChild);
-}
-
-// ─────────────────────────────────────────────
-// REWARDS (polished)
-// ─────────────────────────────────────────────
-document.getElementById('addRewardBtn')?.addEventListener('click', openAddRewardModal);
-
-function openAddRewardModal() {
-  if (!currentUserData || currentUserData.role !== 'owner') return;
-
-  // Remove existing modal if any
-  document.getElementById('rewardModal')?.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'rewardModal';
-  modal.innerHTML = `
-    <div class="modal-backdrop">
-      <div class="modal-card">
-        <h3>Add Reward 🎁</h3>
-        <input id="modalTitle" placeholder="Reward name (e.g. Pets)" maxlength="40">
-        <input id="modalCost" type="number" placeholder="Cost in points" min="1">
-        <input id="modalDesc" placeholder="Short description (optional)" maxlength="80">
-        <div class="modal-actions">
-          <button id="modalCancel" class="secondary">Cancel</button>
-          <button id="modalSave">Save ♡</button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  document.getElementById('modalCancel').onclick = () => modal.remove();
-  document.getElementById('modalSave').onclick = async () => {
-    const title = document.getElementById('modalTitle').value.trim();
-    const cost = parseInt(document.getElementById('modalCost').value, 10);
-    const description = document.getElementById('modalDesc').value.trim();
-
-    if (!title) return alert('Give it a name');
-    if (isNaN(cost) || cost < 1) return alert('Enter a valid point cost');
-
-    try {
-      await db.collection('rewards').add({
-        title,
-        cost,
-        description,
-        active: true,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      modal.remove();
-      loadRewards();
-      addPraise(`🎁 New reward added: ${title}`);
-    } catch (err) {
-      console.error(err);
-      alert('Could not save reward');
-    }
-  };
-}
-
-async function loadRewards() {
-  const list = document.getElementById('rewardList');
-  if (!list) return;
-
-  list.innerHTML = `<p class="empty">Loading…</p>`;
-
-  try {
-    const snap = await db.collection('rewards')
-      .where('active', '==', true)
-      .orderBy('cost')
-      .get();
-
-    if (snap.empty) {
-      list.innerHTML = `<p class="empty">No rewards yet 🐾<br><small>Owner can add some with the ＋ button</small></p>`;
-      return;
-    }
-
-    list.innerHTML = '';
-    snap.forEach(doc => {
-      const r = doc.data();
-      const card = document.createElement('div');
-      card.className = 'reward-card';
-      card.innerHTML = `
-        <div class="reward-info">
-          <strong>${escapeHtml(r.title)}</strong>
-          ${r.description ? `<div class="reward-desc">${escapeHtml(r.description)}</div>` : ''}
-        </div>
-        <div class="reward-actions">
-          <span class="cost-badge">${r.cost} pts</span>
-          ${currentUserData?.role === 'owner'
-            ? `<button class="delete-reward" data-id="${doc.id}">✕</button>`
-            : `<button class="redeem-btn" data-id="${doc.id}" data-cost="${r.cost}">Redeem</button>`
-          }
-        </div>
-      `;
-      list.appendChild(card);
-    });
-
-    // Delete (Owner)
-    list.querySelectorAll('.delete-reward').forEach(btn => {
-      btn.onclick = async () => {
-        if (!confirm('Remove this reward?')) return;
-        await db.collection('rewards').doc(btn.dataset.id).update({ active: false });
-        loadRewards();
-      };
-    });
-
-    // Redeem (Puppy)
-    list.querySelectorAll('.redeem-btn').forEach(btn => {
-      btn.onclick = async () => {
-        const cost = parseInt(btn.dataset.cost, 10);
-        const uid = auth.currentUser.uid;
-        const userDoc = await db.collection('users').doc(uid).get();
-        const points = userDoc.data()?.points || 0;
-
-        if (points < cost) {
-          alert('Not enough points yet… keep being a good girl 🐾');
-          return;
-        }
-        if (!confirm(`Redeem for ${cost} points?`)) return;
-
-        await db.collection('users').doc(uid).update({
-          points: firebase.firestore.FieldValue.increment(-cost)
-        });
-        addPraise(`🎁 Redeemed a reward! (−${cost} pts)`);
-        alert('Redeemed! Go tell your Owner 💕');
-        loadRewards();
-      };
-    });
-  } catch (err) {
-    console.error(err);
-    list.innerHTML = `<p class="empty">Could not load rewards</p>`;
+  to {
+    opacity: 1;
+    transform: none;
   }
-}
-
-// ─────────────────────────────────────────────
-// CALENDAR (polished)
-// ─────────────────────────────────────────────
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
-
-async function renderCalendar() {
-  const cal = document.getElementById('calendar');
-  if (!cal) return;
-
-  const uid = getCalendarUid();
-  if (!uid) {
-    cal.innerHTML = `<p class="empty">Link accounts first to use the calendar 🐾</p>`;
-    return;
-  }
-
-  const monthNames = ['January','February','March','April','May','June',
-                      'July','August','September','October','November','December'];
-
-  // Load events for the visible month
-  const start = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
-  const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const end = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-
-  const eventsSnap = await db.collection('calendar').doc(uid).collection('events')
-    .where('date', '>=', start)
-    .where('date', '<=', end)
-    .get();
-
-  const eventsByDate = {};
-  eventsSnap.forEach(doc => {
-    const d = doc.data();
-    if (!eventsByDate[d.date]) eventsByDate[d.date] = [];
-    eventsByDate[d.date].push({ id: doc.id, ...d });
-  });
-
-  // Build period ranges for nicer highlighting
-  const periodDays = new Set();
-  // Simple version: mark individual days for now (we can enhance range later)
-
-  cal.innerHTML = `
-    <div class="cal-header">
-      <button class="cal-nav" id="prevMonth">‹</button>
-      <h3>${monthNames[currentMonth]} ${currentYear}</h3>
-      <button class="cal-nav" id="nextMonth">›</button>
-    </div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div class="cal-actions">
-      <button class="cal-btn" id="markPeriodStart">Period Start</button>
-      <button class="cal-btn" id="markPeriodEnd">Period End</button>
-      <button class="cal-btn spicy" id="markSpicy">Spicy 🔥</button>
-    </div>
-    <div class="legend">
-      <span><i class="dot period"></i> Period</span>
-      <span><i class="dot spicy"></i> Spicy</span>
-    </div>
-  `;
-
-  const grid = document.getElementById('calGrid');
-  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-  const dayNames = ['S','M','T','W','T','F','S'];
-
-  dayNames.forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'cal-day-name';
-    el.textContent = d;
-    grid.appendChild(el);
-  });
-
-  for (let i = 0; i < firstDay; i++) {
-    const empty = document.createElement('div');
-    empty.className = 'cal-day empty';
-    grid.appendChild(empty);
-  }
-
-  const todayStr = new Date().toISOString().slice(0, 10);
-
-  for (let day = 1; day <= lastDay; day++) {
-    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const dayEl = document.createElement('div');
-    const evts = eventsByDate[dateStr] || [];
-
-    let extraClass = '';
-    if (evts.some(e => e.type.startsWith('period'))) extraClass += ' has-period';
-    if (evts.some(e => e.type === 'spicy')) extraClass += ' has-spicy';
-    if (dateStr === todayStr) extraClass += ' is-today';
-
-    dayEl.className = `cal-day${extraClass}`;
-    dayEl.dataset.date = dateStr;
-    dayEl.innerHTML = `<span class="day-num">${day}</span>`;
-
-    dayEl.addEventListener('click', () => {
-      document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
-      dayEl.classList.add('selected');
-    });
-
-    grid.appendChild(dayEl);
-  }
-
-  document.getElementById('prevMonth').onclick = () => {
-    currentMonth--;
-    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-    renderCalendar();
-  };
-  document.getElementById('nextMonth').onclick = () => {
-    currentMonth++;
-    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-    renderCalendar();
-  };
-
-  document.getElementById('markPeriodStart').onclick = () => markDay('period-start');
-  document.getElementById('markPeriodEnd').onclick = () => markDay('period-end');
-  document.getElementById('markSpicy').onclick = () => markDay('spicy');
-}
-
-function getCalendarUid() {
-  if (!currentUserData) return null;
-  if (currentUserData.role === 'owner') return currentUserData.linkedUid;
-  return auth.currentUser?.uid;
-}
-
-async function markDay(type) {
-  const selected = document.querySelector('.cal-day.selected');
-  if (!selected) {
-    alert('First tap a day, then choose what to mark 🐾');
-    return;
-  }
-
-  const date = selected.dataset.date;
-  const uid = getCalendarUid();
-  if (!uid) return;
-
-  try {
-    // Prevent exact duplicate of same type on same day
-    const existing = await db.collection('calendar').doc(uid).collection('events')
-      .where('date', '==', date)
-      .where('type', '==', type)
-      .limit(1)
-      .get();
-
-    if (!existing.empty) {
-      // Toggle off
-      await existing.docs[0].ref.delete();
-    } else {
-      await db.collection('calendar').doc(uid).collection('events').add({
-        date,
-        type,
-        note: '',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-    renderCalendar();
-  } catch (err) {
-    console.error(err);
-    alert('Could not save');
-  }
-}
-
-// ─────────────────────────────────────────────
-// MORE PANEL (polished)
-// ─────────────────────────────────────────────
-function renderMorePanel() {
-  const panel = document.getElementById('achievementPanel');
-  if (!panel) return;
-
-  panel.innerHTML = `
-    <h2 class="panel-title">More</h2>
-    <div class="more-list">
-      <button class="more-btn" id="btnAchievements">🏆 Achievements</button>
-      <button class="more-btn ownerOnly" id="btnStats">📊 Statistics</button>
-      <button class="more-btn" id="btnTheme">🎨 Theme</button>
-      <button class="more-btn" id="btnSounds">🔊 Sounds</button>
-      <button class="more-btn" id="btnLink">🔗 Link / Relationship</button>
-      <button class="more-btn" id="btnLogoutMore">Logout</button>
-    </div>
-    <div id="moreContent" style="margin-top:18px"></div>
-  `;
-
-  document.getElementById('btnAchievements').onclick = showAchievements;
-  document.getElementById('btnStats')?.addEventListener('click', showStats);
-  document.getElementById('btnTheme').onclick = showTheme;
-  document.getElementById('btnSounds').onclick = showSounds;
-  document.getElementById('btnLink').onclick = () => showScreen('inviteScreen');
-  document.getElementById('btnLogoutMore').onclick = () => auth.signOut();
-}
-
-function showAchievements() {
-  const content = document.getElementById('moreContent');
-  content.innerHTML = `
-    <div class="card" style="gap:10px">
-      <h3 style="color:var(--hot);margin-bottom:4px">Achievements</h3>
-      <div class="ach">🔒 First Points</div>
-      <div class="ach">🔒 Good Girl (50 pts)</div>
-      <div class="ach">🔒 Spoiled (200 pts)</div>
-      <div class="ach">🔒 Period Tracker</div>
-      <div class="ach">🔒 Spicy Day</div>
-      <p style="font-size:0.85rem;color:var(--text-light);margin-top:6px">
-        Real tracking coming in the next update 🐾
-      </p>
-    </div>
-  `;
-}
-
-function showStats() {
-  document.getElementById('moreContent').innerHTML = `
-    <div class="card">
-      <h3 style="color:var(--hot)">Statistics</h3>
-      <p style="color:var(--text-light)">Total points given, rewards redeemed, and streaks will live here soon.</p>
-    </div>
-  `;
-}
-
-function showTheme() {
-  const content = document.getElementById('moreContent');
-  content.innerHTML = `
-    <div class="card">
-      <h3 style="color:var(--hot)">Theme</h3>
-      <p style="color:var(--text-light);margin-bottom:12px">More pastel themes coming soon</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="theme-btn">💗 Pink</button>
-        <button class="theme-btn">💜 Lavender</button>
-        <button class="theme-btn">🍑 Peach</button>
-      </div>
-    </div>
-  `;
-}
-
-function showSounds() {
-  const enabled = localStorage.getItem('soundsEnabled') !== 'false';
-  const content = document.getElementById('moreContent');
-  content.innerHTML = `
-    <div class="card">
-      <h3 style="color:var(--hot)">Sounds</h3>
-      <p style="color:var(--text-light);margin-bottom:12px">Cute sounds when giving points or redeeming</p>
-      <button id="toggleSounds" class="secondary">
-        Sounds are ${enabled ? 'ON 🔊' : 'OFF 🔇'}
-      </button>
-    </div>
-  `;
-  document.getElementById('toggleSounds').onclick = () => {
-    const next = localStorage.getItem('soundsEnabled') === 'false';
-    localStorage.setItem('soundsEnabled', next ? 'true' : 'false');
-    showSounds();
-  };
-}
-
-// ─────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
