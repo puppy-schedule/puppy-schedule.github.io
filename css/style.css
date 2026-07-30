@@ -1,3 +1,32 @@
+#calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.cal-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.cal-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 11px 6px;
+  font-size: 0.85rem;
+  border-radius: 14px;
+  font-weight: 700;
+  background: #ffd2e9;
+  color: var(--pink-dark);
+}
+
+.cal-btn.intimate {
+  background: #ffb6c1;
+}
+
 /*======================================================
   Puppy Rewards – Polished Cute Edition
 ======================================================*/
