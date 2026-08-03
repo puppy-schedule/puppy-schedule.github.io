@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <title>Puppy Rewards</title>
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,12 +15,12 @@
 <body>
   <div id="app">
 
-    <!-- Background decorations -->
+    <!-- Soft background -->
     <div id="background">
       <div class="blob blob1"></div>
       <div class="blob blob2"></div>
       <div class="blob blob3"></div>
-      <div class="paw-prints">🐾 ♡ 🐾 ♡ 🐾 ♡ 🐾 ♡ 🐾</div>
+      <div class="paw-prints">🐾  ♡  🐾  ♡  🐾  ♡  🐾</div>
     </div>
 
     <!-- ===================== LOGIN ===================== -->
@@ -32,88 +31,97 @@
           <h1>Puppy Rewards</h1>
           <p>be a good girl… earn treats</p>
         </div>
-
         <div class="card">
-          <input id="username" type="text" placeholder="Username or Email" autocomplete="username">
+          <input id="username" type="text" placeholder="Email" autocomplete="username">
           <input id="password" type="password" placeholder="Password" autocomplete="current-password">
-          <button id="loginButton">Login ♡</button>
+          <button id="loginButton">Login</button>
           <button id="createAccountButton" class="secondary">Create Account</button>
           <p id="loginError" class="error"></p>
         </div>
       </div>
     </section>
 
-    <!-- ===================== CREATE ACCOUNT ===================== -->
+    <!-- ===================== REGISTER ===================== -->
     <section id="registerScreen" class="screen hidden">
       <div class="pageHeader">
         <button class="backButton" id="backFromRegister">←</button>
         <h2>Create Account</h2>
       </div>
-
       <div class="card">
-        <input id="newUsername" placeholder="Username or Email">
+        <input id="newUsername" placeholder="Email">
         <input id="newPassword" type="password" placeholder="Password">
         <input id="confirmPassword" type="password" placeholder="Confirm Password">
-
         <h3 class="role-title">I am a...</h3>
         <div class="roleButtons">
           <button id="ownerRole" class="role-btn" data-role="owner">
-            <span class="emoji">👑</span>
-            <span>Owner</span>
+            <span class="emoji">👑</span><span>Owner</span>
           </button>
           <button id="puppyRole" class="role-btn" data-role="puppy">
-            <span class="emoji">🐾</span>
-            <span>Puppy</span>
+            <span class="emoji">🐾</span><span>Puppy</span>
           </button>
         </div>
-
-        <button id="finishRegister">Continue ♡</button>
+        <button id="finishRegister">Continue</button>
         <p id="registerError" class="error"></p>
       </div>
     </section>
 
-    <!-- ===================== INVITE / LINK ===================== -->
+    <!-- ===================== LINK ===================== -->
     <section id="inviteScreen" class="screen hidden">
       <div class="pageHeader">
         <button class="backButton" id="backFromInvite">←</button>
         <h2>Link Accounts</h2>
       </div>
-
       <div class="card">
-        <p class="center soft">If you're the <strong>Puppy</strong>, generate a code for your Owner.</p>
+        <p class="center soft">If you're the <strong>Puppy</strong>, generate a code.</p>
         <div id="inviteCode" class="invite-code">XXXX-XXXX</div>
-        <button id="generateCode">Generate Code 🐾</button>
-
+        <button id="generateCode">Generate Code</button>
         <div class="divider">or</div>
-
-        <p class="center soft">If you're the <strong>Owner</strong>, enter your puppy’s code.</p>
+        <p class="center soft">If you're the <strong>Owner</strong>, enter the code.</p>
         <input id="codeInput" placeholder="Invite Code">
-        <button id="linkButton">Link Puppy ♡</button>
+        <button id="linkButton">Link Puppy</button>
         <p id="linkError" class="error"></p>
       </div>
     </section>
 
-    <!-- ===================== MAIN DASHBOARD ===================== -->
+    <!-- ===================== DASHBOARD ===================== -->
     <section id="dashboard" class="screen hidden">
 
-      <!-- Header -->
-      <header>
-        <div>
+      <!-- Top bar -->
+      <header class="dash-header">
+        <button id="menuBtn" class="icon-btn menu-btn" aria-label="Menu">☰</button>
+        <div class="header-center">
           <h2 id="welcomeText">Welcome</h2>
-          <small id="relationshipName">Not linked yet</small>
+          <small id="relationshipName">♡</small>
         </div>
-        <button id="settingsButton" class="icon-btn">⚙️</button>
+        <button id="settingsButton" class="icon-btn" aria-label="Settings">⚙</button>
       </header>
+
+      <!-- Slide menu overlay -->
+      <div id="menuOverlay" class="menu-overlay hidden"></div>
+      <aside id="sideMenu" class="side-menu">
+        <div class="side-menu-header">
+          <span class="side-paw">🐾</span>
+          <h3>Menu</h3>
+        </div>
+        <nav class="side-nav">
+          <button class="side-link active" data-panel="homePanel">Home</button>
+          <button class="side-link" data-panel="walletPanel">Wallet</button>
+          <button class="side-link" data-panel="rewardPanel">Rewards</button>
+          <button class="side-link" data-panel="achievementPanel">More</button>
+        </nav>
+        <div class="side-menu-footer">
+          <button id="sideLogout" class="side-link subtle">Log out</button>
+        </div>
+      </aside>
 
       <!-- HOME -->
       <main id="homePanel" class="panel active">
         <div class="walletCard">
           <div class="walletTitle">Good Girl Wallet</div>
-          <div id="pointCounter">⭐ 0</div>
+          <div id="pointCounter">0</div>
           <div class="wallet-sub">points</div>
         </div>
 
-        <!-- Owner quick give buttons -->
         <div class="quickActions ownerOnly">
           <button data-points="1">+1</button>
           <button data-points="5">+5</button>
@@ -121,20 +129,27 @@
           <button id="customPointsBtn">Custom</button>
         </div>
 
+        <!-- Owner: leave a note for next time she opens -->
+        <div class="noteCard ownerOnly">
+          <h3>Leave a note for her</h3>
+          <textarea id="pendingNoteInput" placeholder="Something sweet for next time she opens the app…" rows="3"></textarea>
+          <button id="sendNoteBtn" class="soft-btn">Send for next login</button>
+        </div>
+
         <div class="praiseCard">
           <h3>Recent Praise</h3>
           <div id="praiseFeed">
-            <div class="praise">🩷 You're such a good girl.</div>
-            <div class="praise">🐾 Good puppy!</div>
+            <div class="praise">You're such a good girl.</div>
+            <div class="praise">Good puppy.</div>
           </div>
         </div>
       </main>
 
       <!-- WALLET -->
       <section id="walletPanel" class="panel">
-        <h2 class="panel-title">Wallet History</h2>
+        <h2 class="panel-title">Wallet</h2>
         <div id="transactionList">
-          <p class="empty">No transactions yet…</p>
+          <p class="empty">No history yet</p>
         </div>
       </section>
 
@@ -142,57 +157,43 @@
       <section id="rewardPanel" class="panel">
         <div class="panelHeader">
           <h2 class="panel-title">Rewards</h2>
-          <button id="addRewardBtn" class="ownerOnly icon-btn">＋</button>
+          <button id="addRewardBtn" class="ownerOnly icon-btn">+</button>
         </div>
         <div id="rewardList">
           <p class="empty">No rewards yet</p>
         </div>
       </section>
 
-      <!-- MORE / ACHIEVEMENTS -->
+      <!-- MORE -->
       <section id="achievementPanel" class="panel">
         <h2 class="panel-title">More</h2>
-        <div class="more-list">
-          <!-- filled by JS -->
-        </div>
+        <div id="moreContentArea"></div>
       </section>
 
-      <!-- SETTINGS (reachable from gear) -->
+      <!-- SETTINGS (opened from gear) -->
       <section id="settingsPanel" class="panel">
         <h2 class="panel-title">Settings</h2>
         <div class="more-list">
-          <button class="more-btn" id="goToLink">🔗 Link / Relationship</button>
-          <button class="more-btn" id="logoutBtn">Logout</button>
+          <button class="more-btn" id="goToLink">Link / Relationship</button>
+          <button class="more-btn" id="logoutBtn">Log out</button>
         </div>
       </section>
-
-      <!-- Bottom Navigation (no calendar) -->
-      <nav id="bottomNav">
-        <button class="navButton active" data-panel="homePanel">
-          <span>🏠</span>
-          <small>Home</small>
-        </button>
-        <button class="navButton" data-panel="walletPanel">
-          <span>⭐</span>
-          <small>Wallet</small>
-        </button>
-        <button class="navButton" data-panel="rewardPanel">
-          <span>🎁</span>
-          <small>Rewards</small>
-        </button>
-        <button class="navButton" data-panel="achievementPanel">
-          <span>✨</span>
-          <small>More</small>
-        </button>
-      </nav>
     </section>
+
+    <!-- Pending note modal (shown to puppy on login) -->
+    <div id="noteModal" class="modal-backdrop hidden">
+      <div class="modal-card note-modal">
+        <div class="note-paw">🐾</div>
+        <h3>A note from your Owner</h3>
+        <p id="noteModalText"></p>
+        <button id="noteModalClose">Okay</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
   <script src="js/firebase-config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
