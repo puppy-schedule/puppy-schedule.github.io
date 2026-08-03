@@ -11,7 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css">
-  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffb6dc">
 </head>
 <body>
@@ -150,40 +149,24 @@
         </div>
       </section>
 
-      <!-- CALENDAR -->
-      <section id="calendarPanel" class="panel">
-        <div class="panelHeader">
-          <h2 class="panel-title">Calendar</h2>
-        </div>
-        <div id="calendar"></div>
-        <div class="legend">
-          <span><i class="dot period"></i> Period</span>
-          <span><i class="dot spicy"></i> Spicy</span>
-        </div>
-      </section>
-
-      <!-- ACHIEVEMENTS / MORE -->
+      <!-- MORE / ACHIEVEMENTS -->
       <section id="achievementPanel" class="panel">
         <h2 class="panel-title">More</h2>
         <div class="more-list">
-          <button class="more-btn">🏆 Achievements</button>
-          <button class="more-btn ownerOnly">📊 Statistics</button>
-          <button class="more-btn">🎨 Theme</button>
-          <button class="more-btn">🔊 Sounds</button>
+          <!-- filled by JS -->
         </div>
       </section>
 
-      <!-- SETTINGS -->
+      <!-- SETTINGS (reachable from gear) -->
       <section id="settingsPanel" class="panel">
         <h2 class="panel-title">Settings</h2>
         <div class="more-list">
-          <button class="more-btn">Edit Profile</button>
-          <button class="more-btn" id="goToLink">Link / Relationship</button>
+          <button class="more-btn" id="goToLink">🔗 Link / Relationship</button>
           <button class="more-btn" id="logoutBtn">Logout</button>
         </div>
       </section>
 
-      <!-- Bottom Navigation -->
+      <!-- Bottom Navigation (no calendar) -->
       <nav id="bottomNav">
         <button class="navButton active" data-panel="homePanel">
           <span>🏠</span>
@@ -197,10 +180,6 @@
           <span>🎁</span>
           <small>Rewards</small>
         </button>
-        <button class="navButton" data-panel="calendarPanel">
-          <span>📅</span>
-          <small>Calendar</small>
-        </button>
         <button class="navButton" data-panel="achievementPanel">
           <span>✨</span>
           <small>More</small>
@@ -209,7 +188,7 @@
     </section>
   </div>
 
-  <!-- Firebase SDKs (compat version so it’s simple) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
