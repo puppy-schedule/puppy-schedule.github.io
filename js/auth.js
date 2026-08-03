@@ -3,14 +3,11 @@
 // You're too far gone.
 // Stop seeking the help you need.
 // ─────────────────────────────────────────────
-// ─────────────────────────────────────────────
-// Global state
-// ─────────────────────────────────────────────
 let currentUserData = null;
 let selectedRole = null;
 let pointsUnsub = null;
+let praiseUnsub = null;
 
-// Discord webhooks
 const WEBHOOK_GENERAL = "https://discord.com/api/webhooks/1533742305570193499/qnm940c3GY8SOkME-aV8UXKcai0YHswFjkY_Var9YczH5sZyCMLi8V9Hz7Hugm-po4n3";
 const WEBHOOK_OPEN    = "https://discord.com/api/webhooks/1533745478158782587/osmJ6OahnNaF-3O7JFnD3MpV7EBZ9NtV0_iJXgpqZ6p-vOrP8KJDeJGK_QzDOUhMd9-Z";
 
@@ -26,9 +23,6 @@ async function sendDiscord(webhook, content) {
   }
 }
 
-// ─────────────────────────────────────────────
-// Screen helpers
-// ─────────────────────────────────────────────
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.add('hidden');
@@ -47,20 +41,16 @@ function isUserLinked(data) {
   return !!data.linkedTo;
 }
 
-// ─────────────────────────────────────────────
 // LOGIN
-// ─────────────────────────────────────────────
 document.getElementById('loginButton')?.addEventListener('click', async () => {
   const email = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
   const errorEl = document.getElementById('loginError');
   if (errorEl) errorEl.textContent = '';
-
   if (!email || !password) {
     if (errorEl) errorEl.textContent = 'Please fill in both fields';
     return;
   }
-
   const btn = document.getElementById('loginButton');
   try {
     btn.disabled = true;
@@ -78,9 +68,7 @@ document.getElementById('createAccountButton')?.addEventListener('click', () => 
   showScreen('registerScreen');
 });
 
-// ─────────────────────────────────────────────
 // REGISTER
-// ─────────────────────────────────────────────
 document.querySelectorAll('.role-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
@@ -117,9 +105,7 @@ document.getElementById('finishRegister')?.addEventListener('click', async () =>
   try {
     btn.disabled = true;
     btn.textContent = 'Creating...';
-
     const cred = await auth.createUserWithEmailAndPassword(email, password);
-
     await db.collection('users').doc(cred.user.uid).set({
       role: selectedRole,
       displayName: email.split('@')[0],
@@ -127,6 +113,7 @@ document.getElementById('finishRegister')?.addEventListener('click', async () =>
       linkedUid: null,
       linkedTo: null,
       inviteCode: null,
+      praise: [],
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   } catch (err) {
@@ -137,13 +124,7 @@ document.getElementById('finishRegister')?.addEventListener('click', async () =>
   }
 });
 
-// ─────────────────────────────────────────────
-// BACK BUTTONS
-// ─────────────────────────────────────────────
-document.getElementById('backFromRegister')?.addEventListener('click', () => {
-  showScreen('loginScreen');
-});
-
+document.getElementById('backFromRegister')?.addEventListener('click', () => showScreen('loginScreen'));
 document.getElementById('backFromInvite')?.addEventListener('click', () => {
   if (auth.currentUser && currentUserData && isUserLinked(currentUserData)) {
     showScreen('dashboard');
@@ -154,9 +135,7 @@ document.getElementById('backFromInvite')?.addEventListener('click', () => {
   }
 });
 
-// ─────────────────────────────────────────────
 // INVITE / LINK
-// ─────────────────────────────────────────────
 document.getElementById('generateCode')?.addEventListener('click', async () => {
   if (!auth.currentUser) return;
   const code = generateInviteCode();
@@ -169,7 +148,6 @@ document.getElementById('linkButton')?.addEventListener('click', async () => {
   const code = document.getElementById('codeInput').value.trim().toUpperCase();
   const errorEl = document.getElementById('linkError');
   if (errorEl) errorEl.textContent = '';
-
   if (!code) {
     if (errorEl) errorEl.textContent = 'Please enter a code';
     return;
@@ -189,7 +167,6 @@ document.getElementById('linkButton')?.addEventListener('click', async () => {
     }
 
     const puppyUid = snap.docs[0].id;
-
     await db.collection('users').doc(auth.currentUser.uid).update({ linkedUid: puppyUid });
     await db.collection('users').doc(puppyUid).update({
       inviteCode: null,
@@ -198,7 +175,6 @@ document.getElementById('linkButton')?.addEventListener('click', async () => {
 
     const fresh = await db.collection('users').doc(auth.currentUser.uid).get();
     currentUserData = fresh.data();
-
     document.body.classList.add('is-owner');
     alert('Successfully linked!');
     showScreen('dashboard');
@@ -220,14 +196,13 @@ function generateInviteCode() {
   return code;
 }
 
-// ─────────────────────────────────────────────
 // AUTH STATE
-// ─────────────────────────────────────────────
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     currentUserData = null;
     document.body.classList.remove('is-owner');
     if (pointsUnsub) { pointsUnsub(); pointsUnsub = null; }
+    if (praiseUnsub) { praiseUnsub(); praiseUnsub = null; }
     showScreen('loginScreen');
     return;
   }
@@ -244,6 +219,7 @@ auth.onAuthStateChanged(async (user) => {
         linkedUid: null,
         linkedTo: null,
         inviteCode: null,
+        praise: [],
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       doc = await docRef.get();
@@ -259,8 +235,6 @@ auth.onAuthStateChanged(async (user) => {
 
     if (isUserLinked(currentUserData)) {
       showScreen('dashboard');
-
-      // Notify when puppy opens the app (max once per hour)
       if (currentUserData.role === 'puppy') {
         const last = Number(localStorage.getItem('lastOpenNotify') || 0);
         if (Date.now() - last > 60 * 60 * 1000) {
@@ -280,9 +254,6 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// Load UI + pending note
-// ─────────────────────────────────────────────
 async function loadUserUI() {
   if (!currentUserData || !auth.currentUser) return;
 
@@ -295,50 +266,18 @@ async function loadUserUI() {
       ? 'Hello, Owner'
       : `Good girl, ${name}`;
   }
-
   if (rel) {
     rel.textContent = isUserLinked(currentUserData) ? '♡ Linked' : 'Not linked yet';
   }
 
   startPointsListener();
-  await checkPendingNote();
+  startPraiseListener();
 }
 
-async function checkPendingNote() {
-  if (!currentUserData || currentUserData.role !== 'puppy') return;
-  const note = currentUserData.pendingNote;
-  if (!note) return;
-
-  const modal = document.getElementById('noteModal');
-  const textEl = document.getElementById('noteModalText');
-  if (!modal || !textEl) return;
-
-  textEl.textContent = note;
-  modal.classList.remove('hidden');
-
-  try {
-    await db.collection('users').doc(auth.currentUser.uid).update({
-      pendingNote: firebase.firestore.FieldValue.delete()
-    });
-    currentUserData.pendingNote = null;
-  } catch (e) {
-    console.warn('Could not clear pending note', e);
-  }
-}
-
-document.getElementById('noteModalClose')?.addEventListener('click', () => {
-  document.getElementById('noteModal')?.classList.add('hidden');
-});
-
-// ─────────────────────────────────────────────
-// Points listener
-// ─────────────────────────────────────────────
 function startPointsListener() {
   if (pointsUnsub) { pointsUnsub(); pointsUnsub = null; }
-
   const uid = getPointsUid();
   if (!uid) return;
-
   pointsUnsub = db.collection('users').doc(uid).onSnapshot(snap => {
     if (!snap.exists) return;
     const points = snap.data().points || 0;
@@ -353,20 +292,43 @@ function getPointsUid() {
   return auth.currentUser?.uid || null;
 }
 
-// ─────────────────────────────────────────────
-// Logout + Settings
-// ─────────────────────────────────────────────
-document.getElementById('logoutBtn')?.addEventListener('click', () => auth.signOut());
+function getPraiseUid() {
+  return getPointsUid();
+}
 
-document.getElementById('settingsButton')?.addEventListener('click', () => {
-  if (typeof switchPanel === 'function') switchPanel('settingsPanel');
-});
+function startPraiseListener() {
+  if (praiseUnsub) { praiseUnsub(); praiseUnsub = null; }
+  const uid = getPraiseUid();
+  if (!uid) return;
 
-document.getElementById('goToLink')?.addEventListener('click', () => showScreen('inviteScreen'));
+  praiseUnsub = db.collection('users').doc(uid).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const list = snap.data().praise || [];
+    renderPraiseFeed(list);
+  });
+}
 
-// ─────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────
+function renderPraiseFeed(list) {
+  const feed = document.getElementById('praiseFeed');
+  if (!feed) return;
+  if (!list.length) {
+    feed.innerHTML = `
+      <div class="praise">You're such a good girl.</div>
+      <div class="praise">Good puppy.</div>
+    `;
+    return;
+  }
+  // newest first
+  const sorted = [...list].reverse().slice(0, 12);
+  feed.innerHTML = sorted.map(t => `<div class="praise">${escapeHtmlAuth(t)}</div>`).join('');
+}
+
+function escapeHtmlAuth(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
 function friendlyError(err) {
   const msg = (err.code || err.message || '').toLowerCase();
   if (msg.includes('user-not-found') || msg.includes('wrong-password') || msg.includes('invalid-credential')) {
