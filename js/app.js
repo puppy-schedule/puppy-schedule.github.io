@@ -365,7 +365,7 @@ async function loadRewards() {
 // MORE – About us + Sounds + Link + Logout
 // ─────────────────────────────────────────────
 function daysSinceAnniversary() {
-  const start = new Date(2025, 4, 1); // May 1, 2025 (month is 0-indexed)
+  const start = new Date(2025, 4, 24); // May 24, 2025
   const now = new Date();
   const startUTC = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
   const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
@@ -382,7 +382,7 @@ function renderMorePanel() {
   target.innerHTML = `
     <div class="about-card">
       <h3>About us</h3>
-      <p class="about-line">Together since <strong>May 1, 2025</strong></p>
+      <p class="about-line">Together since <strong>May 24, 2025</strong></p>
       <p class="about-days"><span id="dayCount">${days}</span> days</p>
       <p class="about-sub">and counting</p>
     </div>
