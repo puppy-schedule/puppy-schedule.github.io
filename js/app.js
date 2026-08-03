@@ -16,6 +16,7 @@ function switchPanel(panelId) {
   }
   if (panelId === 'rewardPanel') loadRewards();
   if (panelId === 'morePanel') renderMorePanel();
+  if (panelId === 'homePanel') updateDailyButton();
 }
 
 function updateDots() {
@@ -52,11 +53,9 @@ document.getElementById('homeBtn')?.addEventListener('click', () => {
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
 
     if (dx < 0) {
-      const next = Math.min(currentPanelIndex + 1, PANELS.length - 1);
-      switchPanel(PANELS[next]);
+      switchPanel(PANELS[Math.min(currentPanelIndex + 1, PANELS.length - 1)]);
     } else {
-      const prev = Math.max(currentPanelIndex - 1, 0);
-      switchPanel(PANELS[prev]);
+      switchPanel(PANELS[Math.max(currentPanelIndex - 1, 0)]);
     }
     playSound('tap');
   }, { passive: true });
@@ -107,7 +106,7 @@ function playSound(type) {
 }
 
 // ─────────────────────────────────────────────
-// Points
+// Owner: manual points
 // ─────────────────────────────────────────────
 document.querySelectorAll('.quickActions button[data-points]').forEach(btn => {
   btn.addEventListener('click', () => givePoints(parseInt(btn.dataset.points, 10)));
@@ -130,7 +129,6 @@ async function givePoints(amount) {
     await db.collection('users').doc(puppyUid).update({
       points: firebase.firestore.FieldValue.increment(amount)
     });
-    addPraiseLocal(amount > 0 ? `+${amount} points! Good girl` : `Took ${Math.abs(amount)} points`);
     playSound('point');
     if (typeof sendDiscord === 'function') {
       sendDiscord(WEBHOOK_GENERAL, `⭐ Owner gave **${amount > 0 ? '+' : ''}${amount}** points`);
@@ -141,32 +139,97 @@ async function givePoints(amount) {
   }
 }
 
-// Weighted daily: 1–5 = 50%, 6–8 = 35%, 9–10 = 15%
+// ─────────────────────────────────────────────
+// Daily treat – PUPPY only, once per 24h
+// Weighted: 1–5 = 50%, 6–8 = 35%, 9–10 = 15%
+// ─────────────────────────────────────────────
 function rollDailyPoints() {
   const r = Math.random() * 100;
-  if (r < 50) return 1 + Math.floor(Math.random() * 5);      // 1-5
-  if (r < 85) return 6 + Math.floor(Math.random() * 3);      // 6-8
-  return 9 + Math.floor(Math.random() * 2);                  // 9-10
+  if (r < 50) return 1 + Math.floor(Math.random() * 5); // 1-5
+  if (r < 85) return 6 + Math.floor(Math.random() * 3); // 6-8
+  return 9 + Math.floor(Math.random() * 2);             // 9-10
+}
+
+async function updateDailyButton() {
+  const btn = document.getElementById('dailyBtn');
+  const hint = document.querySelector('.daily-hint');
+  const wrap = document.querySelector('.dailyWrap');
+  if (!btn || !currentUserData) return;
+
+  // Only show for puppy
+  if (currentUserData.role !== 'puppy') {
+    if (wrap) wrap.style.display = 'none';
+    return;
+  }
+  if (wrap) wrap.style.display = 'block';
+
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+
+  try {
+    const doc = await db.collection('users').doc(uid).get();
+    const last = doc.data()?.lastDailyClaim || 0;
+    const now = Date.now();
+    const remaining = 24 * 60 * 60 * 1000 - (now - last);
+
+    if (remaining > 0) {
+      const hours = Math.ceil(remaining / (60 * 60 * 1000));
+      btn.disabled = true;
+      btn.textContent = `Come back in ~${hours}h`;
+      if (hint) hint.textContent = 'Daily treat already claimed';
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Daily treat';
+      if (hint) hint.textContent = 'Random 1–10 points (low numbers more common)';
+    }
+  } catch (e) {
+    console.warn(e);
+  }
 }
 
 document.getElementById('dailyBtn')?.addEventListener('click', async () => {
-  const amount = rollDailyPoints();
-  await givePoints(amount);
-  alert(`Daily treat: +${amount} points!`);
+  if (!currentUserData || currentUserData.role !== 'puppy') return;
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+
+  const btn = document.getElementById('dailyBtn');
+  if (btn?.disabled) return;
+
+  try {
+    const doc = await db.collection('users').doc(uid).get();
+    const last = doc.data()?.lastDailyClaim || 0;
+    if (Date.now() - last < 24 * 60 * 60 * 1000) {
+      alert('You already claimed your daily treat. Come back later!');
+      updateDailyButton();
+      return;
+    }
+
+    const amount = rollDailyPoints();
+
+    await db.collection('users').doc(uid).update({
+      points: firebase.firestore.FieldValue.increment(amount),
+      lastDailyClaim: Date.now()
+    });
+
+    playSound('point');
+    alert(`Daily treat: +${amount} points! Good girl`);
+    if (typeof sendDiscord === 'function') {
+      sendDiscord(WEBHOOK_GENERAL, `🎁 Puppy claimed daily treat: **+${amount}** points`);
+    }
+    updateDailyButton();
+  } catch (err) {
+    console.error(err);
+    alert('Could not claim daily treat: ' + (err.message || ''));
+  }
 });
 
-function addPraiseLocal(text) {
-  const feed = document.getElementById('praiseFeed');
-  if (!feed) return;
-  const div = document.createElement('div');
-  div.className = 'praise';
-  div.textContent = text;
-  feed.prepend(div);
-  while (feed.children.length > 12) feed.removeChild(feed.lastChild);
-}
+// Refresh daily button when UI loads
+const _origLoad = window.loadUserUI;
+// call after auth loads
+setTimeout(() => updateDailyButton(), 1500);
 
 // ─────────────────────────────────────────────
-// Add praise (saves to Firestore)
+// Add praise (Owner → saves on puppy doc)
 // ─────────────────────────────────────────────
 document.getElementById('sendNoteBtn')?.addEventListener('click', async () => {
   if (!currentUserData || currentUserData.role !== 'owner') return;
@@ -176,10 +239,14 @@ document.getElementById('sendNoteBtn')?.addEventListener('click', async () => {
   const text = document.getElementById('pendingNoteInput')?.value.trim();
   if (!text) return alert('Write something first');
 
+  const btn = document.getElementById('sendNoteBtn');
   try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
     await db.collection('users').doc(puppyUid).update({
       praise: firebase.firestore.FieldValue.arrayUnion(text)
     });
+
     document.getElementById('pendingNoteInput').value = '';
     playSound('tap');
     if (typeof sendDiscord === 'function') {
@@ -187,7 +254,9 @@ document.getElementById('sendNoteBtn')?.addEventListener('click', async () => {
     }
   } catch (err) {
     console.error(err);
-    alert('Could not save praise');
+    alert('Could not save praise: ' + (err.message || 'permission error – update Firestore rules'));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Add to Recent Praise'; }
   }
 });
 
@@ -362,7 +431,7 @@ async function loadRewards() {
 }
 
 // ─────────────────────────────────────────────
-// MORE – About us + Sounds + Link + Logout
+// MORE – About us (May 24, 2025) + Sounds + Link
 // ─────────────────────────────────────────────
 function daysSinceAnniversary() {
   const start = new Date(2025, 4, 24); // May 24, 2025
