@@ -4,18 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <title>Puppy Rewards</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="css/style.css">
   <meta name="theme-color" content="#ffb6dc">
 </head>
 <body>
   <div id="app">
-
-    <!-- Soft background -->
     <div id="background">
       <div class="blob blob1"></div>
       <div class="blob blob2"></div>
@@ -23,7 +19,7 @@
       <div class="paw-prints">🐾  ♡  🐾  ♡  🐾  ♡  🐾</div>
     </div>
 
-    <!-- ===================== LOGIN ===================== -->
+    <!-- LOGIN -->
     <section id="loginScreen" class="screen active">
       <div class="loginContainer">
         <div class="logo">
@@ -41,7 +37,7 @@
       </div>
     </section>
 
-    <!-- ===================== REGISTER ===================== -->
+    <!-- REGISTER -->
     <section id="registerScreen" class="screen hidden">
       <div class="pageHeader">
         <button class="backButton" id="backFromRegister">←</button>
@@ -65,7 +61,7 @@
       </div>
     </section>
 
-    <!-- ===================== LINK ===================== -->
+    <!-- LINK -->
     <section id="inviteScreen" class="screen hidden">
       <div class="pageHeader">
         <button class="backButton" id="backFromInvite">←</button>
@@ -83,15 +79,13 @@
       </div>
     </section>
 
-    <!-- ===================== DASHBOARD ===================== -->
+    <!-- DASHBOARD -->
     <section id="dashboard" class="screen hidden">
-
       <header class="dash-header">
         <div class="header-center">
           <h2 id="welcomeText">Welcome</h2>
           <small id="relationshipName">♡</small>
         </div>
-        <button id="settingsButton" class="icon-btn" aria-label="Settings">⚙</button>
       </header>
 
       <!-- HOME -->
@@ -109,10 +103,15 @@
           <button id="customPointsBtn">Custom</button>
         </div>
 
+        <div class="dailyWrap ownerOnly">
+          <button id="dailyBtn" class="daily-btn">Daily treat</button>
+          <p class="daily-hint">Random 1–10 points (low numbers more common)</p>
+        </div>
+
         <div class="noteCard ownerOnly">
-          <h3>Leave a note for her</h3>
-          <textarea id="pendingNoteInput" placeholder="Something sweet for next time she opens the app…" rows="3"></textarea>
-          <button id="sendNoteBtn" class="soft-btn">Send for next login</button>
+          <h3>Add praise</h3>
+          <textarea id="pendingNoteInput" placeholder="Write something sweet…" rows="2"></textarea>
+          <button id="sendNoteBtn" class="soft-btn">Add to Recent Praise</button>
         </div>
 
         <div class="praiseCard">
@@ -123,14 +122,6 @@
           </div>
         </div>
       </main>
-
-      <!-- WALLET -->
-      <section id="walletPanel" class="panel">
-        <h2 class="panel-title">Wallet</h2>
-        <div id="transactionList">
-          <p class="empty">No history yet</p>
-        </div>
-      </section>
 
       <!-- REWARDS -->
       <section id="rewardPanel" class="panel">
@@ -144,43 +135,23 @@
       </section>
 
       <!-- MORE -->
-      <section id="achievementPanel" class="panel">
+      <section id="morePanel" class="panel">
         <h2 class="panel-title">More</h2>
         <div id="moreContentArea"></div>
       </section>
 
-      <!-- SETTINGS -->
-      <section id="settingsPanel" class="panel">
-        <h2 class="panel-title">Settings</h2>
-        <div class="more-list">
-          <button class="more-btn" id="goToLink">Link / Relationship</button>
-          <button class="more-btn" id="logoutBtn">Log out</button>
-        </div>
-      </section>
-
-      <!-- Soft center nav -->
+      <!-- Center nav (3 pages) -->
       <div id="centerNav">
         <div class="nav-dots">
           <span class="dot active" data-i="0"></span>
           <span class="dot" data-i="1"></span>
           <span class="dot" data-i="2"></span>
-          <span class="dot" data-i="3"></span>
         </div>
         <button id="homeBtn" class="home-btn" aria-label="Home">
           <span class="home-inner"></span>
         </button>
       </div>
     </section>
-
-    <!-- Pending note modal -->
-    <div id="noteModal" class="modal-backdrop hidden">
-      <div class="modal-card note-modal">
-        <div class="note-paw">🐾</div>
-        <h3>A note from your Owner</h3>
-        <p id="noteModalText"></p>
-        <button id="noteModalClose">Okay</button>
-      </div>
-    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
