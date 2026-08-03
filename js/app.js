@@ -1,21 +1,35 @@
 // ─────────────────────────────────────────────
-// Bottom navigation (calendar removed)
+// Side menu
 // ─────────────────────────────────────────────
-document.querySelectorAll('.navButton').forEach(btn => {
+const menuBtn = document.getElementById('menuBtn');
+const sideMenu = document.getElementById('sideMenu');
+const menuOverlay = document.getElementById('menuOverlay');
+
+function openMenu() {
+  sideMenu?.classList.add('open');
+  menuOverlay?.classList.remove('hidden');
+}
+function closeMenu() {
+  sideMenu?.classList.remove('open');
+  menuOverlay?.classList.add('hidden');
+}
+
+menuBtn?.addEventListener('click', openMenu);
+menuOverlay?.addEventListener('click', closeMenu);
+
+document.querySelectorAll('.side-link[data-panel]').forEach(btn => {
   btn.addEventListener('click', () => {
     const panelId = btn.dataset.panel;
-    // skip calendar if it still exists in HTML
-    if (panelId === 'calendarPanel') return;
-
     switchPanel(panelId);
-
-    document.querySelectorAll('.navButton').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.side-link').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
+    closeMenu();
     if (panelId === 'rewardPanel') loadRewards();
     if (panelId === 'achievementPanel') renderMorePanel();
   });
 });
+
+document.getElementById('sideLogout')?.addEventListener('click', () => auth.signOut());
 
 function switchPanel(panelId) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -41,15 +55,14 @@ document.getElementById('customPointsBtn')?.addEventListener('click', async () =
 async function givePoints(amount) {
   if (!currentUserData || currentUserData.role !== 'owner') return;
   const puppyUid = currentUserData.linkedUid;
-  if (!puppyUid) return alert('Link a puppy first 🐾');
+  if (!puppyUid) return alert('Link a puppy first');
 
   try {
     await db.collection('users').doc(puppyUid).update({
       points: firebase.firestore.FieldValue.increment(amount)
     });
-    addPraise(amount > 0 ? `🩷 +${amount} points! Good girl~` : `Took ${Math.abs(amount)} points`);
+    addPraise(amount > 0 ? `+${amount} points! Good girl` : `Took ${Math.abs(amount)} points`);
 
-    // Discord notify
     if (typeof sendDiscord === 'function') {
       sendDiscord(WEBHOOK_GENERAL, `⭐ Owner gave **${amount > 0 ? '+' : ''}${amount}** points`);
     }
@@ -70,7 +83,31 @@ function addPraise(text) {
 }
 
 // ─────────────────────────────────────────────
-// REWARDS (fixed redeem + new fields)
+// Leave a note for next login (Owner)
+// ─────────────────────────────────────────────
+document.getElementById('sendNoteBtn')?.addEventListener('click', async () => {
+  if (!currentUserData || currentUserData.role !== 'owner') return;
+  const puppyUid = currentUserData.linkedUid;
+  if (!puppyUid) return alert('Link a puppy first');
+
+  const text = document.getElementById('pendingNoteInput')?.value.trim();
+  if (!text) return alert('Write something first');
+
+  try {
+    await db.collection('users').doc(puppyUid).update({ pendingNote: text });
+    document.getElementById('pendingNoteInput').value = '';
+    alert('Note saved — she’ll see it next time she opens the app');
+    if (typeof sendDiscord === 'function') {
+      sendDiscord(WEBHOOK_GENERAL, '💌 Owner left a note for next login');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Could not save note');
+  }
+});
+
+// ─────────────────────────────────────────────
+// REWARDS
 // ─────────────────────────────────────────────
 document.getElementById('addRewardBtn')?.addEventListener('click', openAddRewardModal);
 
@@ -87,21 +124,21 @@ function openAddRewardModal() {
   modal.innerHTML = `
     <div class="modal-backdrop">
       <div class="modal-card">
-        <h3>Add Reward 🎁</h3>
+        <h3>Add Reward</h3>
         <input id="modalTitle" placeholder="Title (e.g. Pets)" maxlength="40">
         <input id="modalInfo" placeholder="Info / description" maxlength="100">
         <input id="modalPrice" type="number" placeholder="Price (points)" min="1">
-        <input id="modalAmount" type="number" placeholder="Amount available (0 = unlimited)" min="0">
+        <input id="modalAmount" type="number" placeholder="Amount (0 = unlimited)" min="0">
         <div class="modal-actions">
           <button type="button" id="modalCancel" class="secondary">Cancel</button>
-          <button type="button" id="modalSave">Save ♡</button>
+          <button type="button" id="modalSave">Save</button>
         </div>
         <p id="modalError" class="error"></p>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
-  document.getElementById('modalTitle').focus();
+  document.getElementById('modalTitle')?.focus();
 
   document.getElementById('modalCancel').onclick = () => modal.remove();
 
@@ -127,24 +164,24 @@ function openAddRewardModal() {
         title,
         description: info,
         cost: price,
-        amount: amount,          // 0 = unlimited
+        amount,
         active: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
       modal.remove();
       loadRewards();
-      addPraise(`🎁 New reward: ${title}`);
+      addPraise(`New reward: ${title}`);
 
       if (typeof sendDiscord === 'function') {
-        sendDiscord(WEBHOOK_GENERAL, `🎁 New reward added: **${title}** (${price} pts)`);
+        sendDiscord(WEBHOOK_GENERAL, `🎁 New reward: **${title}** (${price} pts)`);
       }
     } catch (err) {
       console.error(err);
       errorEl.textContent = err.message || 'Could not save';
     } finally {
       saveBtn.disabled = false;
-      saveBtn.textContent = 'Save ♡';
+      saveBtn.textContent = 'Save';
     }
   };
 }
@@ -162,16 +199,14 @@ async function loadRewards() {
       .get();
 
     if (snap.empty) {
-      list.innerHTML = `<p class="empty">No rewards yet 🐾<br><small>Tap ＋ to add one</small></p>`;
+      list.innerHTML = `<p class="empty">No rewards yet<br><small>Tap + to add one</small></p>`;
       return;
     }
 
     list.innerHTML = '';
     snap.forEach(doc => {
       const r = doc.data();
-      const amountText = (r.amount === 0 || r.amount == null)
-        ? 'Unlimited'
-        : `${r.amount} left`;
+      const amountText = (r.amount === 0 || r.amount == null) ? 'Unlimited' : `${r.amount} left`;
 
       const card = document.createElement('div');
       card.className = 'reward-card';
@@ -179,12 +214,12 @@ async function loadRewards() {
         <div class="reward-info">
           <strong>${escapeHtml(r.title)}</strong>
           ${r.description ? `<div class="reward-desc">${escapeHtml(r.description)}</div>` : ''}
-          <div class="reward-desc" style="margin-top:2px">${amountText}</div>
+          <div class="reward-desc">${amountText}</div>
         </div>
         <div class="reward-actions">
           <span class="cost-badge">${r.cost} pts</span>
           ${currentUserData?.role === 'owner'
-            ? `<button class="delete-reward" data-id="${doc.id}">✕</button>`
+            ? `<button class="delete-reward" data-id="${doc.id}">×</button>`
             : `<button class="redeem-btn" data-id="${doc.id}" data-cost="${r.cost}" data-amount="${r.amount || 0}">Redeem</button>`
           }
         </div>
@@ -192,7 +227,6 @@ async function loadRewards() {
       list.appendChild(card);
     });
 
-    // Delete
     list.querySelectorAll('.delete-reward').forEach(btn => {
       btn.onclick = async () => {
         if (!confirm('Delete this reward?')) return;
@@ -201,7 +235,6 @@ async function loadRewards() {
       };
     });
 
-    // Redeem (now actually subtracts points)
     list.querySelectorAll('.redeem-btn').forEach(btn => {
       btn.onclick = async () => {
         const cost = parseInt(btn.dataset.cost, 10);
@@ -213,12 +246,10 @@ async function loadRewards() {
         const points = userDoc.data()?.points || 0;
 
         if (points < cost) {
-          alert('Not enough points yet… keep being a good girl 🐾');
+          alert('Not enough points yet… keep being a good girl');
           return;
         }
-        if (currentAmount === 0) {
-          // unlimited – fine
-        } else if (currentAmount <= 0) {
+        if (currentAmount > 0 && currentAmount <= 0) {
           alert('This reward is out of stock');
           return;
         }
@@ -226,12 +257,10 @@ async function loadRewards() {
         if (!confirm(`Redeem for ${cost} points?`)) return;
 
         try {
-          // Subtract points
           await db.collection('users').doc(uid).update({
             points: firebase.firestore.FieldValue.increment(-cost)
           });
 
-          // Decrease amount if limited
           if (currentAmount > 0) {
             const newAmount = currentAmount - 1;
             if (newAmount <= 0) {
@@ -241,12 +270,12 @@ async function loadRewards() {
             }
           }
 
-          addPraise(`🎁 Redeemed! (−${cost} pts)`);
-          alert('Redeemed! Go tell your Owner 💕');
+          addPraise(`Redeemed! (−${cost} pts)`);
+          alert('Redeemed! Tell your Owner');
 
           if (typeof sendDiscord === 'function') {
             const title = btn.closest('.reward-card')?.querySelector('strong')?.textContent || 'a reward';
-            sendDiscord(WEBHOOK_GENERAL, `🎁 **Puppy redeemed:** ${title} (−${cost} pts)`);
+            sendDiscord(WEBHOOK_GENERAL, `🎁 Puppy redeemed: **${title}** (−${cost} pts)`);
           }
 
           loadRewards();
@@ -256,7 +285,6 @@ async function loadRewards() {
         }
       };
     });
-
   } catch (err) {
     console.error(err);
     list.innerHTML = `<p class="empty">Could not load rewards<br><small>${err.message}</small></p>`;
@@ -267,64 +295,62 @@ async function loadRewards() {
 // MORE PANEL
 // ─────────────────────────────────────────────
 function renderMorePanel() {
-  const panel = document.getElementById('achievementPanel');
-  if (!panel) return;
+  const area = document.getElementById('moreContentArea') || document.getElementById('achievementPanel');
+  if (!area) return;
 
-  panel.innerHTML = `
-    <h2 class="panel-title">More</h2>
+  // If we're writing into achievementPanel directly, structure it cleanly
+  const target = document.getElementById('moreContentArea') || area;
+  target.innerHTML = `
     <div class="more-list">
-      <button class="more-btn" id="btnAchievements">🏆 Achievements</button>
-      <button class="more-btn" id="btnTheme">🎨 Theme</button>
-      <button class="more-btn" id="btnSounds">🔊 Sounds</button>
-      <button class="more-btn" id="btnLink">🔗 Link / Relationship</button>
-      <button class="more-btn" id="btnLogoutMore">Logout</button>
+      <button class="more-btn" id="btnAchievements">Achievements</button>
+      <button class="more-btn" id="btnTheme">Theme</button>
+      <button class="more-btn" id="btnSounds">Sounds</button>
+      <button class="more-btn" id="btnLinkMore">Link / Relationship</button>
+      <button class="more-btn" id="btnLogoutMore">Log out</button>
     </div>
-    <div id="moreContent" style="margin-top:18px"></div>
+    <div id="moreDetail" style="margin-top:16px"></div>
   `;
 
-  document.getElementById('btnAchievements').onclick = showAchievements;
-  document.getElementById('btnTheme').onclick = showTheme;
-  document.getElementById('btnSounds').onclick = showSounds;
-  document.getElementById('btnLink').onclick = () => showScreen('inviteScreen');
-  document.getElementById('btnLogoutMore').onclick = () => auth.signOut();
-}
-
-function showAchievements() {
-  document.getElementById('moreContent').innerHTML = `
-    <div class="card" style="gap:10px">
-      <h3 style="color:var(--hot)">Achievements</h3>
-      <div class="ach">🔒 First Points</div>
-      <div class="ach">🔒 Good Girl (50 pts)</div>
-      <div class="ach">🔒 Spoiled (200 pts)</div>
-      <p style="font-size:0.85rem;color:var(--text-light);margin-top:6px">More coming later 🐾</p>
-    </div>
-  `;
-}
-
-function showTheme() {
-  document.getElementById('moreContent').innerHTML = `
-    <div class="card">
-      <h3 style="color:var(--hot)">Theme</h3>
-      <p style="color:var(--text-light)">More pastel themes coming soon</p>
-    </div>
-  `;
-}
-
-function showSounds() {
-  const enabled = localStorage.getItem('soundsEnabled') !== 'false';
-  document.getElementById('moreContent').innerHTML = `
-    <div class="card">
-      <h3 style="color:var(--hot)">Sounds</h3>
-      <button id="toggleSounds" class="secondary">
-        Sounds are ${enabled ? 'ON 🔊' : 'OFF 🔇'}
-      </button>
-    </div>
-  `;
-  document.getElementById('toggleSounds').onclick = () => {
-    const next = localStorage.getItem('soundsEnabled') === 'false';
-    localStorage.setItem('soundsEnabled', next ? 'true' : 'false');
-    showSounds();
+  document.getElementById('btnAchievements').onclick = () => {
+    document.getElementById('moreDetail').innerHTML = `
+      <div class="card" style="gap:10px">
+        <h3 style="color:var(--hot)">Achievements</h3>
+        <div class="ach">First Points</div>
+        <div class="ach">Good Girl (50 pts)</div>
+        <div class="ach">Spoiled (200 pts)</div>
+        <p style="font-size:0.85rem;color:var(--text-light)">More later</p>
+      </div>
+    `;
   };
+
+  document.getElementById('btnTheme').onclick = () => {
+    document.getElementById('moreDetail').innerHTML = `
+      <div class="card">
+        <h3 style="color:var(--hot)">Theme</h3>
+        <p style="color:var(--text-light)">More pastel themes coming soon</p>
+      </div>
+    `;
+  };
+
+  document.getElementById('btnSounds').onclick = () => {
+    const enabled = localStorage.getItem('soundsEnabled') !== 'false';
+    document.getElementById('moreDetail').innerHTML = `
+      <div class="card">
+        <h3 style="color:var(--hot)">Sounds</h3>
+        <button id="toggleSounds" class="secondary">
+          Sounds are ${enabled ? 'ON' : 'OFF'}
+        </button>
+      </div>
+    `;
+    document.getElementById('toggleSounds').onclick = () => {
+      const next = localStorage.getItem('soundsEnabled') === 'false';
+      localStorage.setItem('soundsEnabled', next ? 'true' : 'false');
+      document.getElementById('btnSounds').click();
+    };
+  };
+
+  document.getElementById('btnLinkMore').onclick = () => showScreen('inviteScreen');
+  document.getElementById('btnLogoutMore').onclick = () => auth.signOut();
 }
 
 // ─────────────────────────────────────────────
