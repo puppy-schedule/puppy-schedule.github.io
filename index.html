@@ -86,33 +86,13 @@
     <!-- ===================== DASHBOARD ===================== -->
     <section id="dashboard" class="screen hidden">
 
-      <!-- Top bar -->
       <header class="dash-header">
-        <button id="menuBtn" class="icon-btn menu-btn" aria-label="Menu">☰</button>
         <div class="header-center">
           <h2 id="welcomeText">Welcome</h2>
           <small id="relationshipName">♡</small>
         </div>
         <button id="settingsButton" class="icon-btn" aria-label="Settings">⚙</button>
       </header>
-
-      <!-- Slide menu overlay -->
-      <div id="menuOverlay" class="menu-overlay hidden"></div>
-      <aside id="sideMenu" class="side-menu">
-        <div class="side-menu-header">
-          <span class="side-paw">🐾</span>
-          <h3>Menu</h3>
-        </div>
-        <nav class="side-nav">
-          <button class="side-link active" data-panel="homePanel">Home</button>
-          <button class="side-link" data-panel="walletPanel">Wallet</button>
-          <button class="side-link" data-panel="rewardPanel">Rewards</button>
-          <button class="side-link" data-panel="achievementPanel">More</button>
-        </nav>
-        <div class="side-menu-footer">
-          <button id="sideLogout" class="side-link subtle">Log out</button>
-        </div>
-      </aside>
 
       <!-- HOME -->
       <main id="homePanel" class="panel active">
@@ -129,7 +109,6 @@
           <button id="customPointsBtn">Custom</button>
         </div>
 
-        <!-- Owner: leave a note for next time she opens -->
         <div class="noteCard ownerOnly">
           <h3>Leave a note for her</h3>
           <textarea id="pendingNoteInput" placeholder="Something sweet for next time she opens the app…" rows="3"></textarea>
@@ -170,7 +149,7 @@
         <div id="moreContentArea"></div>
       </section>
 
-      <!-- SETTINGS (opened from gear) -->
+      <!-- SETTINGS -->
       <section id="settingsPanel" class="panel">
         <h2 class="panel-title">Settings</h2>
         <div class="more-list">
@@ -178,9 +157,22 @@
           <button class="more-btn" id="logoutBtn">Log out</button>
         </div>
       </section>
+
+      <!-- Soft center nav -->
+      <div id="centerNav">
+        <div class="nav-dots">
+          <span class="dot active" data-i="0"></span>
+          <span class="dot" data-i="1"></span>
+          <span class="dot" data-i="2"></span>
+          <span class="dot" data-i="3"></span>
+        </div>
+        <button id="homeBtn" class="home-btn" aria-label="Home">
+          <span class="home-inner"></span>
+        </button>
+      </div>
     </section>
 
-    <!-- Pending note modal (shown to puppy on login) -->
+    <!-- Pending note modal -->
     <div id="noteModal" class="modal-backdrop hidden">
       <div class="modal-card note-modal">
         <div class="note-paw">🐾</div>
