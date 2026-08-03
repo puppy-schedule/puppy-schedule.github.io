@@ -103,7 +103,8 @@
           <button id="customPointsBtn">Custom</button>
         </div>
 
-        <div class="dailyWrap ownerOnly">
+        <!-- Daily treat: visible to puppy (JS hides for owner) -->
+        <div class="dailyWrap" id="dailyWrap">
           <button id="dailyBtn" class="daily-btn">Daily treat</button>
           <p class="daily-hint">Random 1–10 points (low numbers more common)</p>
         </div>
@@ -140,7 +141,7 @@
         <div id="moreContentArea"></div>
       </section>
 
-      <!-- Center nav (3 pages) -->
+      <!-- Center nav -->
       <div id="centerNav">
         <div class="nav-dots">
           <span class="dot active" data-i="0"></span>
