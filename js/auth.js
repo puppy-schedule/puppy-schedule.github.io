@@ -10,6 +10,22 @@ let currentUserData = null;
 let selectedRole = null;
 let pointsUnsub = null;
 
+// Discord webhooks
+const WEBHOOK_GENERAL = "https://discord.com/api/webhooks/1533742305570193499/qnm940c3GY8SOkME-aV8UXKcai0YHswFjkY_Var9YczH5sZyCMLi8V9Hz7Hugm-po4n3";
+const WEBHOOK_OPEN    = "https://discord.com/api/webhooks/1533745478158782587/osmJ6OahnNaF-3O7JFnD3MpV7EBZ9NtV0_iJXgpqZ6p-vOrP8KJDeJGK_QzDOUhMd9-Z";
+
+async function sendDiscord(webhook, content) {
+  try {
+    await fetch(webhook, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content })
+    });
+  } catch (e) {
+    console.warn("Discord webhook failed", e);
+  }
+}
+
 // ─────────────────────────────────────────────
 // Screen helpers
 // ─────────────────────────────────────────────
@@ -143,10 +159,8 @@ document.getElementById('backFromInvite')?.addEventListener('click', () => {
 // ─────────────────────────────────────────────
 document.getElementById('generateCode')?.addEventListener('click', async () => {
   if (!auth.currentUser) return;
-
   const code = generateInviteCode();
   await db.collection('users').doc(auth.currentUser.uid).update({ inviteCode: code });
-
   const el = document.getElementById('inviteCode');
   if (el) el.textContent = code;
 });
@@ -176,10 +190,7 @@ document.getElementById('linkButton')?.addEventListener('click', async () => {
 
     const puppyUid = snap.docs[0].id;
 
-    await db.collection('users').doc(auth.currentUser.uid).update({
-      linkedUid: puppyUid
-    });
-
+    await db.collection('users').doc(auth.currentUser.uid).update({ linkedUid: puppyUid });
     await db.collection('users').doc(puppyUid).update({
       inviteCode: null,
       linkedTo: auth.currentUser.uid
@@ -192,6 +203,8 @@ document.getElementById('linkButton')?.addEventListener('click', async () => {
     alert('Successfully linked! ♡');
     showScreen('dashboard');
     await loadUserUI();
+
+    sendDiscord(WEBHOOK_GENERAL, `🔗 **Accounts linked!** Owner connected with puppy.`);
   } catch (err) {
     console.error(err);
     if (errorEl) errorEl.textContent = err.message || 'Link failed';
@@ -215,10 +228,7 @@ auth.onAuthStateChanged(async (user) => {
   if (!user) {
     currentUserData = null;
     document.body.classList.remove('is-owner');
-    if (pointsUnsub) {
-      pointsUnsub();
-      pointsUnsub = null;
-    }
+    if (pointsUnsub) { pointsUnsub(); pointsUnsub = null; }
     showScreen('loginScreen');
     return;
   }
@@ -250,6 +260,16 @@ auth.onAuthStateChanged(async (user) => {
 
     if (isUserLinked(currentUserData)) {
       showScreen('dashboard');
+
+      // Notify when the *puppy* opens the app (once per hour max)
+      if (currentUserData.role === 'puppy') {
+        const last = localStorage.getItem('lastOpenNotify') || 0;
+        if (Date.now() - last > 60 * 60 * 1000) {
+          localStorage.setItem('lastOpenNotify', Date.now());
+          const name = currentUserData.displayName || 'Puppy';
+          sendDiscord(WEBHOOK_OPEN, `🐾 **${name}** just opened Puppy Rewards~`);
+        }
+      }
     } else {
       showScreen('inviteScreen');
     }
@@ -288,10 +308,7 @@ async function loadUserUI() {
 // Points listener
 // ─────────────────────────────────────────────
 function startPointsListener() {
-  if (pointsUnsub) {
-    pointsUnsub();
-    pointsUnsub = null;
-  }
+  if (pointsUnsub) { pointsUnsub(); pointsUnsub = null; }
 
   const uid = getPointsUid();
   if (!uid) return;
