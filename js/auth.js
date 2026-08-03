@@ -316,7 +316,6 @@ async function checkPendingNote() {
   textEl.textContent = note;
   modal.classList.remove('hidden');
 
-  // Clear so it only shows once
   try {
     await db.collection('users').doc(auth.currentUser.uid).update({
       pendingNote: firebase.firestore.FieldValue.delete()
@@ -358,9 +357,11 @@ function getPointsUid() {
 // Logout + Settings
 // ─────────────────────────────────────────────
 document.getElementById('logoutBtn')?.addEventListener('click', () => auth.signOut());
+
 document.getElementById('settingsButton')?.addEventListener('click', () => {
   if (typeof switchPanel === 'function') switchPanel('settingsPanel');
 });
+
 document.getElementById('goToLink')?.addEventListener('click', () => showScreen('inviteScreen'));
 
 // ─────────────────────────────────────────────
