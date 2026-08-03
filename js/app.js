@@ -1,13 +1,11 @@
 // ─────────────────────────────────────────────
-// Panel order for swipe + dots
+// Panels: Home → Rewards → More
 // ─────────────────────────────────────────────
-const PANELS = ['homePanel', 'walletPanel', 'rewardPanel', 'achievementPanel'];
+const PANELS = ['homePanel', 'rewardPanel', 'morePanel'];
 let currentPanelIndex = 0;
 
 function switchPanel(panelId) {
   const idx = PANELS.indexOf(panelId);
-  if (idx === -1 && panelId !== 'settingsPanel') return;
-
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById(panelId);
   if (panel) panel.classList.add('active');
@@ -16,9 +14,8 @@ function switchPanel(panelId) {
     currentPanelIndex = idx;
     updateDots();
   }
-
   if (panelId === 'rewardPanel') loadRewards();
-  if (panelId === 'achievementPanel') renderMorePanel();
+  if (panelId === 'morePanel') renderMorePanel();
 }
 
 function updateDots() {
@@ -27,21 +24,16 @@ function updateDots() {
   });
 }
 
-// Center home button → always Home
 document.getElementById('homeBtn')?.addEventListener('click', () => {
   switchPanel('homePanel');
+  playSound('tap');
 });
 
-// ─────────────────────────────────────────────
-// Swipe left / right on the dashboard
-// ─────────────────────────────────────────────
+// Swipe
 (function setupSwipe() {
   const dash = document.getElementById('dashboard');
   if (!dash) return;
-
-  let startX = 0;
-  let startY = 0;
-  let tracking = false;
+  let startX = 0, startY = 0, tracking = false;
 
   dash.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) return;
@@ -53,29 +45,69 @@ document.getElementById('homeBtn')?.addEventListener('click', () => {
   dash.addEventListener('touchend', (e) => {
     if (!tracking) return;
     tracking = false;
-
     const endX = e.changedTouches[0].clientX;
     const endY = e.changedTouches[0].clientY;
     const dx = endX - startX;
     const dy = endY - startY;
-
-    // Ignore mostly vertical scrolls
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
 
     if (dx < 0) {
-      // swipe left → next
       const next = Math.min(currentPanelIndex + 1, PANELS.length - 1);
       switchPanel(PANELS[next]);
     } else {
-      // swipe right → previous
       const prev = Math.max(currentPanelIndex - 1, 0);
       switchPanel(PANELS[prev]);
     }
+    playSound('tap');
   }, { passive: true });
 })();
 
 // ─────────────────────────────────────────────
-// Owner: give points
+// Sounds
+// ─────────────────────────────────────────────
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+  }
+  return audioCtx;
+}
+
+function playSound(type) {
+  if (localStorage.getItem('soundsEnabled') === 'false') return;
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  if (type === 'point') {
+    osc.frequency.value = 880;
+    gain.gain.value = 0.08;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.stop(ctx.currentTime + 0.15);
+  } else if (type === 'redeem') {
+    osc.frequency.value = 523;
+    gain.gain.value = 0.1;
+    osc.start();
+    setTimeout(() => { osc.frequency.value = 659; }, 80);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.stop(ctx.currentTime + 0.25);
+  } else {
+    osc.frequency.value = 640;
+    gain.gain.value = 0.05;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+    osc.stop(ctx.currentTime + 0.08);
+  }
+}
+
+// ─────────────────────────────────────────────
+// Points
 // ─────────────────────────────────────────────
 document.querySelectorAll('.quickActions button[data-points]').forEach(btn => {
   btn.addEventListener('click', () => givePoints(parseInt(btn.dataset.points, 10)));
@@ -98,8 +130,8 @@ async function givePoints(amount) {
     await db.collection('users').doc(puppyUid).update({
       points: firebase.firestore.FieldValue.increment(amount)
     });
-    addPraise(amount > 0 ? `+${amount} points! Good girl` : `Took ${Math.abs(amount)} points`);
-
+    addPraiseLocal(amount > 0 ? `+${amount} points! Good girl` : `Took ${Math.abs(amount)} points`);
+    playSound('point');
     if (typeof sendDiscord === 'function') {
       sendDiscord(WEBHOOK_GENERAL, `⭐ Owner gave **${amount > 0 ? '+' : ''}${amount}** points`);
     }
@@ -109,18 +141,32 @@ async function givePoints(amount) {
   }
 }
 
-function addPraise(text) {
+// Weighted daily: 1–5 = 50%, 6–8 = 35%, 9–10 = 15%
+function rollDailyPoints() {
+  const r = Math.random() * 100;
+  if (r < 50) return 1 + Math.floor(Math.random() * 5);      // 1-5
+  if (r < 85) return 6 + Math.floor(Math.random() * 3);      // 6-8
+  return 9 + Math.floor(Math.random() * 2);                  // 9-10
+}
+
+document.getElementById('dailyBtn')?.addEventListener('click', async () => {
+  const amount = rollDailyPoints();
+  await givePoints(amount);
+  alert(`Daily treat: +${amount} points!`);
+});
+
+function addPraiseLocal(text) {
   const feed = document.getElementById('praiseFeed');
   if (!feed) return;
   const div = document.createElement('div');
   div.className = 'praise';
   div.textContent = text;
   feed.prepend(div);
-  while (feed.children.length > 6) feed.removeChild(feed.lastChild);
+  while (feed.children.length > 12) feed.removeChild(feed.lastChild);
 }
 
 // ─────────────────────────────────────────────
-// Leave a note for next login
+// Add praise (saves to Firestore)
 // ─────────────────────────────────────────────
 document.getElementById('sendNoteBtn')?.addEventListener('click', async () => {
   if (!currentUserData || currentUserData.role !== 'owner') return;
@@ -131,15 +177,17 @@ document.getElementById('sendNoteBtn')?.addEventListener('click', async () => {
   if (!text) return alert('Write something first');
 
   try {
-    await db.collection('users').doc(puppyUid).update({ pendingNote: text });
+    await db.collection('users').doc(puppyUid).update({
+      praise: firebase.firestore.FieldValue.arrayUnion(text)
+    });
     document.getElementById('pendingNoteInput').value = '';
-    alert('Note saved — she’ll see it next time she opens the app');
+    playSound('tap');
     if (typeof sendDiscord === 'function') {
-      sendDiscord(WEBHOOK_GENERAL, '💌 Owner left a note for next login');
+      sendDiscord(WEBHOOK_GENERAL, `💌 New praise: ${text.slice(0, 80)}`);
     }
   } catch (err) {
     console.error(err);
-    alert('Could not save note');
+    alert('Could not save praise');
   }
 });
 
@@ -153,7 +201,6 @@ function openAddRewardModal() {
     alert('Only the Owner can add rewards');
     return;
   }
-
   document.getElementById('rewardModal')?.remove();
 
   const modal = document.createElement('div');
@@ -162,8 +209,8 @@ function openAddRewardModal() {
     <div class="modal-backdrop">
       <div class="modal-card">
         <h3>Add Reward</h3>
-        <input id="modalTitle" placeholder="Title (e.g. Pets)" maxlength="40">
-        <input id="modalInfo" placeholder="Info / description" maxlength="100">
+        <input id="modalTitle" placeholder="Title" maxlength="40">
+        <input id="modalInfo" placeholder="Info / description" maxlength="120">
         <input id="modalPrice" type="number" placeholder="Price (points)" min="1">
         <input id="modalAmount" type="number" placeholder="Amount (0 = unlimited)" min="0">
         <div class="modal-actions">
@@ -176,7 +223,6 @@ function openAddRewardModal() {
   `;
   document.body.appendChild(modal);
   document.getElementById('modalTitle')?.focus();
-
   document.getElementById('modalCancel').onclick = () => modal.remove();
 
   document.getElementById('modalSave').onclick = async () => {
@@ -198,18 +244,13 @@ function openAddRewardModal() {
 
     try {
       await db.collection('rewards').add({
-        title,
-        description: info,
-        cost: price,
-        amount,
+        title, description: info, cost: price, amount,
         active: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-
       modal.remove();
       loadRewards();
-      addPraise(`New reward: ${title}`);
-
+      playSound('tap');
       if (typeof sendDiscord === 'function') {
         sendDiscord(WEBHOOK_GENERAL, `🎁 New reward: **${title}** (${price} pts)`);
       }
@@ -226,7 +267,6 @@ function openAddRewardModal() {
 async function loadRewards() {
   const list = document.getElementById('rewardList');
   if (!list) return;
-
   list.innerHTML = `<p class="empty">Loading…</p>`;
 
   try {
@@ -251,7 +291,7 @@ async function loadRewards() {
         <div class="reward-info">
           <strong>${escapeHtml(r.title)}</strong>
           ${r.description ? `<div class="reward-desc">${escapeHtml(r.description)}</div>` : ''}
-          <div class="reward-desc">${amountText}</div>
+          <div class="reward-meta">${amountText}</div>
         </div>
         <div class="reward-actions">
           <span class="cost-badge">${r.cost} pts</span>
@@ -286,7 +326,6 @@ async function loadRewards() {
           alert('Not enough points yet… keep being a good girl');
           return;
         }
-
         if (!confirm(`Redeem for ${cost} points?`)) return;
 
         try {
@@ -303,14 +342,12 @@ async function loadRewards() {
             }
           }
 
-          addPraise(`Redeemed! (−${cost} pts)`);
+          playSound('redeem');
           alert('Redeemed! Tell your Owner');
-
           if (typeof sendDiscord === 'function') {
             const title = btn.closest('.reward-card')?.querySelector('strong')?.textContent || 'a reward';
             sendDiscord(WEBHOOK_GENERAL, `🎁 Puppy redeemed: **${title}** (−${cost} pts)`);
           }
-
           loadRewards();
         } catch (err) {
           console.error(err);
@@ -325,68 +362,49 @@ async function loadRewards() {
 }
 
 // ─────────────────────────────────────────────
-// MORE PANEL
+// MORE – About us + Sounds + Link + Logout
 // ─────────────────────────────────────────────
+function daysSinceAnniversary() {
+  const start = new Date(2025, 4, 1); // May 1, 2025 (month is 0-indexed)
+  const now = new Date();
+  const startUTC = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+  const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((nowUTC - startUTC) / 86400000);
+}
+
 function renderMorePanel() {
   const target = document.getElementById('moreContentArea');
   if (!target) return;
 
+  const days = daysSinceAnniversary();
+  const soundsOn = localStorage.getItem('soundsEnabled') !== 'false';
+
   target.innerHTML = `
-    <div class="more-list">
-      <button class="more-btn" id="btnAchievements">Achievements</button>
-      <button class="more-btn" id="btnTheme">Theme</button>
-      <button class="more-btn" id="btnSounds">Sounds</button>
+    <div class="about-card">
+      <h3>About us</h3>
+      <p class="about-line">Together since <strong>May 1, 2025</strong></p>
+      <p class="about-days"><span id="dayCount">${days}</span> days</p>
+      <p class="about-sub">and counting</p>
+    </div>
+
+    <div class="more-list" style="margin-top:14px">
+      <button class="more-btn" id="btnSounds">Sounds: ${soundsOn ? 'On' : 'Off'}</button>
       <button class="more-btn" id="btnLinkMore">Link / Relationship</button>
       <button class="more-btn" id="btnLogoutMore">Log out</button>
     </div>
-    <div id="moreDetail" style="margin-top:16px"></div>
   `;
 
-  document.getElementById('btnAchievements').onclick = () => {
-    document.getElementById('moreDetail').innerHTML = `
-      <div class="card" style="gap:10px">
-        <h3 style="color:var(--hot)">Achievements</h3>
-        <div class="ach">First Points</div>
-        <div class="ach">Good Girl (50 pts)</div>
-        <div class="ach">Spoiled (200 pts)</div>
-        <p style="font-size:0.85rem;color:var(--text-light)">More later</p>
-      </div>
-    `;
-  };
-
-  document.getElementById('btnTheme').onclick = () => {
-    document.getElementById('moreDetail').innerHTML = `
-      <div class="card">
-        <h3 style="color:var(--hot)">Theme</h3>
-        <p style="color:var(--text-light)">More pastel themes coming soon</p>
-      </div>
-    `;
-  };
-
   document.getElementById('btnSounds').onclick = () => {
-    const enabled = localStorage.getItem('soundsEnabled') !== 'false';
-    document.getElementById('moreDetail').innerHTML = `
-      <div class="card">
-        <h3 style="color:var(--hot)">Sounds</h3>
-        <button id="toggleSounds" class="secondary">
-          Sounds are ${enabled ? 'ON' : 'OFF'}
-        </button>
-      </div>
-    `;
-    document.getElementById('toggleSounds').onclick = () => {
-      const next = localStorage.getItem('soundsEnabled') === 'false';
-      localStorage.setItem('soundsEnabled', next ? 'true' : 'false');
-      document.getElementById('btnSounds').click();
-    };
+    const next = localStorage.getItem('soundsEnabled') === 'false';
+    localStorage.setItem('soundsEnabled', next ? 'true' : 'false');
+    if (next) playSound('tap');
+    renderMorePanel();
   };
 
   document.getElementById('btnLinkMore').onclick = () => showScreen('inviteScreen');
   document.getElementById('btnLogoutMore').onclick = () => auth.signOut();
 }
 
-// ─────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
