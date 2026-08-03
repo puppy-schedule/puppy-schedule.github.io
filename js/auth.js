@@ -70,7 +70,7 @@ document.getElementById('loginButton')?.addEventListener('click', async () => {
     if (errorEl) errorEl.textContent = friendlyError(err);
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Login ♡';
+    btn.textContent = 'Login';
   }
 });
 
@@ -133,7 +133,7 @@ document.getElementById('finishRegister')?.addEventListener('click', async () =>
     if (errorEl) errorEl.textContent = friendlyError(err);
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Continue ♡';
+    btn.textContent = 'Continue';
   }
 });
 
@@ -200,11 +200,10 @@ document.getElementById('linkButton')?.addEventListener('click', async () => {
     currentUserData = fresh.data();
 
     document.body.classList.add('is-owner');
-    alert('Successfully linked! ♡');
+    alert('Successfully linked!');
     showScreen('dashboard');
     await loadUserUI();
-
-    sendDiscord(WEBHOOK_GENERAL, `🔗 **Accounts linked!** Owner connected with puppy.`);
+    sendDiscord(WEBHOOK_GENERAL, '🔗 Accounts linked!');
   } catch (err) {
     console.error(err);
     if (errorEl) errorEl.textContent = err.message || 'Link failed';
@@ -261,13 +260,13 @@ auth.onAuthStateChanged(async (user) => {
     if (isUserLinked(currentUserData)) {
       showScreen('dashboard');
 
-      // Notify when the *puppy* opens the app (once per hour max)
+      // Notify when puppy opens the app (max once per hour)
       if (currentUserData.role === 'puppy') {
-        const last = localStorage.getItem('lastOpenNotify') || 0;
+        const last = Number(localStorage.getItem('lastOpenNotify') || 0);
         if (Date.now() - last > 60 * 60 * 1000) {
           localStorage.setItem('lastOpenNotify', Date.now());
           const name = currentUserData.displayName || 'Puppy';
-          sendDiscord(WEBHOOK_OPEN, `🐾 **${name}** just opened Puppy Rewards~`);
+          sendDiscord(WEBHOOK_OPEN, `🐾 **${name}** just opened Puppy Rewards`);
         }
       }
     } else {
@@ -282,7 +281,7 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // ─────────────────────────────────────────────
-// Load UI
+// Load UI + pending note
 // ─────────────────────────────────────────────
 async function loadUserUI() {
   if (!currentUserData || !auth.currentUser) return;
@@ -302,7 +301,35 @@ async function loadUserUI() {
   }
 
   startPointsListener();
+  await checkPendingNote();
 }
+
+async function checkPendingNote() {
+  if (!currentUserData || currentUserData.role !== 'puppy') return;
+  const note = currentUserData.pendingNote;
+  if (!note) return;
+
+  const modal = document.getElementById('noteModal');
+  const textEl = document.getElementById('noteModalText');
+  if (!modal || !textEl) return;
+
+  textEl.textContent = note;
+  modal.classList.remove('hidden');
+
+  // Clear so it only shows once
+  try {
+    await db.collection('users').doc(auth.currentUser.uid).update({
+      pendingNote: firebase.firestore.FieldValue.delete()
+    });
+    currentUserData.pendingNote = null;
+  } catch (e) {
+    console.warn('Could not clear pending note', e);
+  }
+}
+
+document.getElementById('noteModalClose')?.addEventListener('click', () => {
+  document.getElementById('noteModal')?.classList.add('hidden');
+});
 
 // ─────────────────────────────────────────────
 // Points listener
@@ -317,7 +344,7 @@ function startPointsListener() {
     if (!snap.exists) return;
     const points = snap.data().points || 0;
     const el = document.getElementById('pointCounter');
-    if (el) el.textContent = `⭐ ${points}`;
+    if (el) el.textContent = points;
   });
 }
 
