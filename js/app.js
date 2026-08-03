@@ -1,41 +1,78 @@
 // ─────────────────────────────────────────────
-// Side menu
+// Panel order for swipe + dots
 // ─────────────────────────────────────────────
-const menuBtn = document.getElementById('menuBtn');
-const sideMenu = document.getElementById('sideMenu');
-const menuOverlay = document.getElementById('menuOverlay');
-
-function openMenu() {
-  sideMenu?.classList.add('open');
-  menuOverlay?.classList.remove('hidden');
-}
-function closeMenu() {
-  sideMenu?.classList.remove('open');
-  menuOverlay?.classList.add('hidden');
-}
-
-menuBtn?.addEventListener('click', openMenu);
-menuOverlay?.addEventListener('click', closeMenu);
-
-document.querySelectorAll('.side-link[data-panel]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const panelId = btn.dataset.panel;
-    switchPanel(panelId);
-    document.querySelectorAll('.side-link').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    closeMenu();
-    if (panelId === 'rewardPanel') loadRewards();
-    if (panelId === 'achievementPanel') renderMorePanel();
-  });
-});
-
-document.getElementById('sideLogout')?.addEventListener('click', () => auth.signOut());
+const PANELS = ['homePanel', 'walletPanel', 'rewardPanel', 'achievementPanel'];
+let currentPanelIndex = 0;
 
 function switchPanel(panelId) {
+  const idx = PANELS.indexOf(panelId);
+  if (idx === -1 && panelId !== 'settingsPanel') return;
+
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById(panelId);
   if (panel) panel.classList.add('active');
+
+  if (idx !== -1) {
+    currentPanelIndex = idx;
+    updateDots();
+  }
+
+  if (panelId === 'rewardPanel') loadRewards();
+  if (panelId === 'achievementPanel') renderMorePanel();
 }
+
+function updateDots() {
+  document.querySelectorAll('.nav-dots .dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === currentPanelIndex);
+  });
+}
+
+// Center home button → always Home
+document.getElementById('homeBtn')?.addEventListener('click', () => {
+  switchPanel('homePanel');
+});
+
+// ─────────────────────────────────────────────
+// Swipe left / right on the dashboard
+// ─────────────────────────────────────────────
+(function setupSwipe() {
+  const dash = document.getElementById('dashboard');
+  if (!dash) return;
+
+  let startX = 0;
+  let startY = 0;
+  let tracking = false;
+
+  dash.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+
+  dash.addEventListener('touchend', (e) => {
+    if (!tracking) return;
+    tracking = false;
+
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const dx = endX - startX;
+    const dy = endY - startY;
+
+    // Ignore mostly vertical scrolls
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+
+    if (dx < 0) {
+      // swipe left → next
+      const next = Math.min(currentPanelIndex + 1, PANELS.length - 1);
+      switchPanel(PANELS[next]);
+    } else {
+      // swipe right → previous
+      const prev = Math.max(currentPanelIndex - 1, 0);
+      switchPanel(PANELS[prev]);
+    }
+  }, { passive: true });
+})();
 
 // ─────────────────────────────────────────────
 // Owner: give points
@@ -83,7 +120,7 @@ function addPraise(text) {
 }
 
 // ─────────────────────────────────────────────
-// Leave a note for next login (Owner)
+// Leave a note for next login
 // ─────────────────────────────────────────────
 document.getElementById('sendNoteBtn')?.addEventListener('click', async () => {
   if (!currentUserData || currentUserData.role !== 'owner') return;
@@ -249,10 +286,6 @@ async function loadRewards() {
           alert('Not enough points yet… keep being a good girl');
           return;
         }
-        if (currentAmount > 0 && currentAmount <= 0) {
-          alert('This reward is out of stock');
-          return;
-        }
 
         if (!confirm(`Redeem for ${cost} points?`)) return;
 
@@ -295,11 +328,9 @@ async function loadRewards() {
 // MORE PANEL
 // ─────────────────────────────────────────────
 function renderMorePanel() {
-  const area = document.getElementById('moreContentArea') || document.getElementById('achievementPanel');
-  if (!area) return;
+  const target = document.getElementById('moreContentArea');
+  if (!target) return;
 
-  // If we're writing into achievementPanel directly, structure it cleanly
-  const target = document.getElementById('moreContentArea') || area;
   target.innerHTML = `
     <div class="more-list">
       <button class="more-btn" id="btnAchievements">Achievements</button>
