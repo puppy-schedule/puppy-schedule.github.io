@@ -180,7 +180,7 @@ async function updateDailyButton() {
     } else {
       btn.disabled = false;
       btn.textContent = 'Daily treat';
-      if (hint) hint.textContent = 'Random 1–10 points (low numbers more common)';
+      if (hint) hint.textContent = ' ';
     }
   } catch (e) {
     console.warn(e);
